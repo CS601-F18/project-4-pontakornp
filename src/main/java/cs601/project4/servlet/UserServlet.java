@@ -139,7 +139,9 @@ public class UserServlet extends HttpServlet {
 			}
 			JSONObject userObj = new JSONObject();
 			userObj.put("userid", userid);
-			sendResponse(response, "User created");
+			String body = "User created\n";
+			body += userObj.toString();
+			sendResponse(response, body);
 		} catch (SQLException e) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "User unsuccessfully created");
