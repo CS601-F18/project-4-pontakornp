@@ -1,7 +1,51 @@
 package cs601.project4.servlet;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class FrontEndServlet extends HttpServlet{
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		
+		//GET /echo
+		
+//		request.getPathInfo();
+		
+        response.setContentType("text/html");
+        response.setStatus(HttpServletResponse.SC_OK);
+		System.out.println(request.getPathInfo());
+		PrintWriter out = response.getWriter();
+		out.println("<html><title>EchoServlet</title><body>");
+		
+		out.println("<form action=\"frontend\" method=\"post\">");
+		out.println("Message: <br/>");
+		out.println("<input type=\"text\" name=\"usermsg\"/><br/>");
+		out.println("<input type=\"submit\" value=\"Submit\"/></form>");		
+		
+//		out.println("<a href=http://localhost:8080/hello>Say Hello</a><br/>");
+//		out.println("<a href=http://localhost:8080/goodbye>Say Goodbye</a><br/>");
+		
+		out.println("</body></html>");
+	
 
+		
+		
+	}
+	
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		
+		//POST /echo
+        response.setContentType("text/html");
+        response.setStatus(HttpServletResponse.SC_OK);
+		
+		PrintWriter out = response.getWriter();
+
+		String msg = request.getParameter("usermsg");
+		
+		out.println("<html><title>EchoServlet</title><body>You said: " + msg + "</body></html>");
+
+	}
 }
