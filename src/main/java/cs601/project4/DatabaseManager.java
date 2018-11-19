@@ -59,7 +59,7 @@ public class DatabaseManager {
 		return con;
 	}
 	
-	public void closeConnection() {
+	public static void closeConnection() {
 		try {
 			con.close();
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Successfully close db connection.", 0);
