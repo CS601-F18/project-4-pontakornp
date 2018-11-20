@@ -201,8 +201,7 @@ public class UserServlet extends HttpServlet {
 					TicketPurchaseApplicationLogger.write(Level.INFO, "Ticket added. Event id: "+ eventid + ", User id: " + userid, 0);
 				}
 			}
-			String body = "Event tickets added";
-			sendResponse(response, body);
+			sendResponse(response, "Event tickets added");
 		} catch (SQLException e) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "Tickets could not be added");
@@ -247,8 +246,10 @@ public class UserServlet extends HttpServlet {
 		}
 		
 		// check if user has ticket
-		smtp = con.prepareStatement("SELECT COUNT(ticketid) tickets FROM tickets WHERE userid = ?");
+		int eventid = Integer.parseInt(request.getParameter("eventid"));
+		smtp = con.prepareStatement("SELECT COUNT(ticketid) tickets FROM tickets WHERE userid = ? and eventid = ?");
 		smtp.setInt(1, userid);
+		smtp.setInt(2, eventid);
 		result = smtp.executeQuery();
 		int ticketCount = 0;
 		if(!result.next()) {
@@ -274,17 +275,35 @@ public class UserServlet extends HttpServlet {
 		boolean isInputValid = false;
 		try {
 			isInputValid = isTransferTicketInputValid(request, response, userid);
+			if(!isInputValid) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				sendResponse(response, "Tickets could not be transfered");
+				return;
+			}
+			int eventid = Integer.parseInt(request.getParameter("eventid"));
+			int tickets = Integer.parseInt(request.getParameter("tickets"));
+			int targetuser = Integer.parseInt(request.getParameter("targetuser"));
+			Connection con = DatabaseManager.getConnection();
+			// update userid to be the userid that gets tickets transferred
+			PreparedStatement stmt = con.prepareStatement("UPDATE tickets SET userid = ? WHERE userid = ? and eventid = ? LIMIT ?");
+			stmt.setInt(1, targetuser);
+			stmt.setInt(2, userid);
+			stmt.setInt(3, eventid);
+			stmt.setInt(4, tickets);
+			int count = stmt.executeUpdate();
+			if(count == 0) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				sendResponse(response, "Tickets could not be transfered");
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Userid not updated", 1);
+				return;
+			}
 		} catch (SQLException e) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "Tickets could not be transfered");
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error", 1);
 			return;
 		}
-		if(!isInputValid) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			sendResponse(response, "Tickets could not be transfered");
-			return;
-		}
-		
+		sendResponse(response, "Event tickets transferred");
 	}
 	
 	// perform post operation according to specified path
