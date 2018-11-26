@@ -1,0 +1,44 @@
+package cs601.project4.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.logging.Level;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import cs601.project4.TicketPurchaseApplicationLogger;
+
+public class BaseServlet extends HttpServlet {
+	/**
+	 * send response
+	 * @param response
+	 * @param body
+	 */
+	public void sendResponse(HttpServletResponse response, String body) {
+		PrintWriter out;
+		try {
+			out = response.getWriter();
+			out.write(body);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot write to client", 1);
+		}
+	}
+	
+	/**
+	 * GET and POST helper method
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	public boolean isPageFound(HttpServletRequest request, HttpServletResponse response) {
+		String pathInfo = request.getPathInfo();
+		if(pathInfo == null || pathInfo.length() <= 1) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			sendResponse(response, "Page not found");
+			return false;
+		}
+		return true;
+	}
+}

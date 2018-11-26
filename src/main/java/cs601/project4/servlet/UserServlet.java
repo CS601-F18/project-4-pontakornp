@@ -16,8 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import cs601.project4.DatabaseManager;
 import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.database.DatabaseManager;
+import cs601.project4.database.User;
 
 
 public class UserServlet extends HttpServlet {
@@ -97,38 +98,19 @@ public class UserServlet extends HttpServlet {
 			sendResponse(response, "User unsuccessfully created");
 			return;
 		}
-		Connection con = DatabaseManager.getConnection();
-		try {
-			PreparedStatement smtp = con.prepareStatement("INSERT INTO users (username) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
-			smtp.setString(1, username);
-			int count = smtp.executeUpdate();
-			if(count == 0) {
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				sendResponse(response, "User unsuccessfully created");
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Creating user failed. No row affected.", 1);
-				return;
-			}
-			int userid = 0;
-			try (ResultSet generatedKeys = smtp.getGeneratedKeys()) {
-				if (generatedKeys.next()) {
-					userid = generatedKeys.getInt(1);
-				} else {
-					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-					sendResponse(response, "User unsuccessfully created");
-					TicketPurchaseApplicationLogger.write(Level.WARNING, "Creating user failed. No userid obtained.", 1);
-					return;
-				}
-			}
-			JSONObject userObj = new JSONObject();
-			userObj.put("userid", userid);
-			String body = "User created\n";
-			body += userObj.toString();
-			sendResponse(response, body);
-		} catch (SQLException e) {
+		User user = new User();
+		user.setUsername(username);
+		user = DatabaseManager.getInstance().insertUser(user);
+		if(user == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "User unsuccessfully created");
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error", 1);
+			return;
 		}
+		JSONObject userObj = new JSONObject();
+		userObj.put("userid", user.getUserid());
+		String body = "User created\n";
+		body += userObj.toString();
+		sendResponse(response, body);
 	}
 	
 	/**
