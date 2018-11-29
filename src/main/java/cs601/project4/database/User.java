@@ -1,24 +1,24 @@
 package cs601.project4.database;
 
 public class User {
-	private int userid;
+	private int userId;
 	private String username;
 	
 	public User() {
 		
 	}
 	
-	public User(int userid, String username) {
-		this.userid = userid;
+	public User(int userId, String username) {
+		this.userId = userId;
 		this.username = username;
 	}
 
-	public int getUserid() {
-		return userid;
+	public int getUserId() {
+		return userId;
 	}
 
-	public void setUserid(int userid) {
-		this.userid = userid;
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
 
 	public String getUsername() {

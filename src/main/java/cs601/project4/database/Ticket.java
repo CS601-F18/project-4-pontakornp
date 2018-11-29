@@ -1,41 +1,41 @@
 package cs601.project4.database;
 
 public class Ticket {
-	private int ticketid;
-	private int eventid;
-	private int userid;
+	private int ticketId;
+	private int eventId;
+	private int userId;
 	
 	public Ticket() {
 		
 	}
 	
-	public Ticket(int ticketid, int eventid, int userid) {
-		this.ticketid = ticketid;
-		this.eventid = eventid;
-		this.userid = userid;
+	public Ticket(int ticketId, int eventId, int userId) {
+		this.ticketId = ticketId;
+		this.eventId = eventId;
+		this.userId = userId;
 	}
 
-	public int getTicketid() {
-		return ticketid;
+	public int getTicketId() {
+		return ticketId;
 	}
 
-	public void setTicketid(int ticketid) {
-		this.ticketid = ticketid;
+	public void setTicketId(int ticketId) {
+		this.ticketId = ticketId;
 	}
 
-	public int getEventid() {
-		return eventid;
+	public int getEventId() {
+		return eventId;
 	}
 
-	public void setEventid(int eventid) {
-		this.eventid = eventid;
+	public void setEventId(int eventId) {
+		this.eventId = eventId;
 	}
 
-	public int getUserid() {
-		return userid;
+	public int getUserId() {
+		return userId;
 	}
 
-	public void setUserid(int userid) {
-		this.userid = userid;
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
 }

@@ -1,52 +1,52 @@
 package cs601.project4.database;
 
 public class Event {
-	private int eventid;
-	private String eventname;
-	private int avail;
-	private int purchased;
+	private int eventId;
+	private String eventName;
+	private int numTicketAvail;
+	private int numTicketPurchased;
 	
 	public Event() {
 		
 	}
 	
-	public Event(int eventid, String eventname, int avail, int purchased) {
-		this.setEventid(eventid);
-		this.setEventname(eventname);
-		this.setAvail(avail);
-		this.setPurchased(purchased);
+	public Event(int eventId, String eventName, int numTicketAvail, int numTicketPurchased) {
+		this.eventId = eventId;
+		this.eventName = eventName;
+		this.numTicketAvail = numTicketAvail;
+		this.numTicketPurchased = numTicketPurchased;
 	}
 
-	public int getEventid() {
-		return eventid;
+	public int getEventId() {
+		return eventId;
 	}
 
-	public void setEventid(int eventid) {
-		this.eventid = eventid;
+	public void setEventId(int eventId) {
+		this.eventId = eventId;
 	}
 
-	public String getEventname() {
-		return eventname;
+	public String getEventName() {
+		return eventName;
 	}
 
-	public void setEventname(String eventname) {
-		this.eventname = eventname;
+	public void setEventName(String eventName) {
+		this.eventName = eventName;
 	}
 
-	public int getAvail() {
-		return avail;
+	public int getNumTicketAvail() {
+		return numTicketAvail;
 	}
 
-	public void setAvail(int avail) {
-		this.avail = avail;
+	public void setNumTicketAvail(int numTicketAvail) {
+		this.numTicketAvail = numTicketAvail;
 	}
 
-	public int getPurchased() {
-		return purchased;
+	public int getNumTicketPurchased() {
+		return numTicketPurchased;
 	}
 
-	public void setPurchased(int purchased) {
-		this.purchased = purchased;
+	public void setNumTicketPurchased(int numTicketPurchased) {
+		this.numTicketPurchased = numTicketPurchased;
 	}
 	
 }

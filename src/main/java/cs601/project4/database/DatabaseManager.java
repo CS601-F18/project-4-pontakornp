@@ -94,11 +94,11 @@ public class DatabaseManager {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Creating user failed. No row affected.", 1);
 				return null;
 			}
-			int userid = 0;
+			int userId = 0;
 			try (ResultSet generatedKeys = smtp.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
-					userid = generatedKeys.getInt(1);
-					user.setUserid(userid);
+					userId = generatedKeys.getInt(1);
+					user.setUserId(userId);
 				} else {
 					TicketPurchaseApplicationLogger.write(Level.WARNING, "Creating user failed. No userid obtained.", 1);
 					return null;
@@ -113,8 +113,8 @@ public class DatabaseManager {
 	
 	public User selectUser(User user) {
 		try {
-			PreparedStatement stmt = con.prepareStatement("SELECT username FROM users WHERE userid = ?");
-			stmt.setInt(1, user.getUserid());
+			PreparedStatement stmt = con.prepareStatement("SELECT username FROM users WHERE user_id = ?");
+			stmt.setInt(1, user.getUserId());
 			// execute a query, which returns a ResultSet object
 			ResultSet result = stmt.executeQuery();
 			if(!result.next()) {
@@ -135,8 +135,8 @@ public class DatabaseManager {
 		try {
 			PreparedStatement smtp = con.prepareStatement("INSERT INTO tickets (userid, eventid) VALUES (?, ?)");
 			for(int i = 1; i <= tickets; i++) {
-				smtp.setInt(1, ticket.getUserid());
-				smtp.setInt(2, ticket.getEventid());
+				smtp.setInt(1, ticket.getUserId());
+				smtp.setInt(2, ticket.getEventId());
 				smtp.addBatch();
 			}
 			smtp.executeBatch();
@@ -152,4 +152,6 @@ public class DatabaseManager {
 			return false;
 		}
 	}
+	
+	public boolean countTicket
 }
