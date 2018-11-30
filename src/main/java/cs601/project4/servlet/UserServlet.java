@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.logging.Level;
 
 import javax.servlet.http.HttpServlet;
@@ -18,7 +19,6 @@ import org.json.JSONObject;
 
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.database.DatabaseManager;
-import cs601.project4.database.User;
 
 
 public class UserServlet extends HttpServlet {
@@ -30,6 +30,7 @@ public class UserServlet extends HttpServlet {
 		if (!isPageFound(request, response)) {
 			return;
 		}
+		response.setContentType("application/json");
 		String pathInfo = request.getPathInfo();
 		String[] pathParts = pathInfo.split("/");
 		if(pathParts.length == 2 && pathParts[1].matches("\\d+")) {
@@ -48,6 +49,7 @@ public class UserServlet extends HttpServlet {
 		if (!isPageFound(request, response)) {
 			return;
 		}
+		response.setContentType("application/json");
 		String pathInfo = request.getPathInfo().trim();
 		String[] pathParts = pathInfo.split("/");
 		if(pathParts.length == 2 && pathParts[1].equals("create")) {
@@ -69,18 +71,23 @@ public class UserServlet extends HttpServlet {
 	 * @param response
 	 * @param userid
 	 */
-	private void getUserDetails(HttpServletRequest request, HttpServletResponse response, int userid) {
-        response.setContentType("application/json");
+	private void getUserDetails(HttpServletRequest request, HttpServletResponse response, int userId) {
+		String username = DatabaseManager.getInstance().selectUser(userId);
         JSONObject userObj = new JSONObject();
-		try {
-			selectUser(userid, userObj);
-			
-		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error", 1);
+        userObj.put("userid", userId);
+		userObj.put("username", username);
+		List<Integer> eventIdList = DatabaseManager.getInstance().selectUserEventId(userId);
+		JSONArray arrObj = new JSONArray();
+		for(int eventId: eventIdList) {
+			// put tickets info to json object
+			JSONObject ticketObj = new JSONObject();
+			ticketObj.put("eventid", eventId);
+			arrObj.put(ticketObj);
 		}
+		userObj.put("tickets", arrObj);
 		if(userObj.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			sendResponse(response, "User not found");
+			sendResponse(response, "User does not own any ticket");
 			return;
 		}
 		sendResponse(response, userObj.toString());
@@ -98,18 +105,15 @@ public class UserServlet extends HttpServlet {
 			sendResponse(response, "User unsuccessfully created");
 			return;
 		}
-		User user = new User();
-		user.setUsername(username);
-		user = DatabaseManager.getInstance().insertUser(user);
-		if(user == null) {
+		int userId = DatabaseManager.getInstance().insertUser(username);
+		if(userId == -1) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "User unsuccessfully created");
 			return;
 		}
 		JSONObject userObj = new JSONObject();
-		userObj.put("userid", user.getUserid());
-		String body = "User created\n";
-		body += userObj.toString();
+		userObj.put("userid", userId);
+		String body = userObj.toString();
 		sendResponse(response, body);
 	}
 	
@@ -119,7 +123,7 @@ public class UserServlet extends HttpServlet {
 	 * @param response
 	 * @param userid
 	 */
-	private void addTicket(HttpServletRequest request, HttpServletResponse response, int userid) {
+	private void addTicket(HttpServletRequest request, HttpServletResponse response, int userId) {
 		// check if input is valid
 		if(request.getParameter("eventid") == null || request.getParameter("tickets") == null) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -130,7 +134,7 @@ public class UserServlet extends HttpServlet {
 			// check if userid exists and is ticket added
 			int eventid = Integer.parseInt(request.getParameter("eventid"));
 			int tickets = Integer.parseInt(request.getParameter("tickets"));
-			if(!isUserExist(userid)) {
+			if(!isUserExist(userId)) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				sendResponse(response, "Tickets could not be added");
 				return;
@@ -231,6 +235,8 @@ public class UserServlet extends HttpServlet {
 			arrObj.put(ticketObj);
 		}
 		userObj.put("tickets", arrObj);
+		
+		
 	}
 	
 	/**

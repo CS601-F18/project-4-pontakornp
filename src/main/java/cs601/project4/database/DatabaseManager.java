@@ -6,12 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import cs601.project4.Config;
 import cs601.project4.TicketPurchaseApplicationLogger;
@@ -132,7 +129,6 @@ public class DatabaseManager {
 		try {
 			PreparedStatement stmt = con.prepareStatement("SELECT username FROM users WHERE user_id = ?");
 			stmt.setInt(1, userId);
-			// execute a query, which returns a ResultSet object
 			ResultSet result = stmt.executeQuery();
 			if(!result.next()) {
 				TicketPurchaseApplicationLogger.write(Level.INFO, "Username not found", 0);
@@ -147,19 +143,17 @@ public class DatabaseManager {
 		}
 	}
 	
-	public String selectEventUsers(int userId) {
+	public List<Integer> selectUserEventId(int userId) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("SELECT event_id FROM tickets WHERE user_id = ?");
 			stmt.setInt(1, userId);
-			// execute a query, which returns a ResultSet object
 			ResultSet result = stmt.executeQuery();
-			if(!result.next()) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "", 0);
-				return null;
+			List<Integer> list = new ArrayList<Integer>();
+			while (result.next()) {
+				int eventId = result.getInt("event_id");
+				list.add(eventId);
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "", 0);
-			String username = result.getString("");
-			return username;
+			return list;
 		} catch (SQLException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "", 1);
 			return null;
