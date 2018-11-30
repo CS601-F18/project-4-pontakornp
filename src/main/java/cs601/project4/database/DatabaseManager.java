@@ -39,22 +39,23 @@ public class DatabaseManager {
 		//Must set time zone explicitly in newer versions of mySQL.
 		String timeZoneSettings = "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 		//https://stackoverflow.com/questions/21361781/how-to-connect-to-database-connection-in-java
-		con = null;
+//		con = null;
 		try {
 			con = DriverManager.getConnection(urlString + timeZoneSettings,
 					username,
 					password);
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Connection established", 0);
 	    } catch (SQLException e) {
 	        System.out.println("Connection Failed! Check output console");
-	        TicketPurchaseApplicationLogger.write(Level.WARNING, "Connection failed.", 1);
+	        TicketPurchaseApplicationLogger.write(Level.WARNING, "Connection failed", 1);
 	        return;
 	    }
 
-	    if (con != null) {
-	    	TicketPurchaseApplicationLogger.write(Level.INFO, "Connection established.", 0);
-	    } else {
-	        TicketPurchaseApplicationLogger.write(Level.WARNING, "Failed to make connection.", 1);
-	    }
+//	    if (con != null) {
+//	    	TicketPurchaseApplicationLogger.write(Level.INFO, "Connection established.", 0);
+//	    } else {
+//	        TicketPurchaseApplicationLogger.write(Level.WARNING, "Failed to make connection.", 1);
+//	    }
 	} 
 	
 	public static DatabaseManager getInstance() {
@@ -85,73 +86,165 @@ public class DatabaseManager {
 	 * @param user - User object
 	 * @return User object or null
 	 */
-	public User insertUser(User user) {
+	public int insertUser(String username) {
 		try {
-			PreparedStatement smtp = con.prepareStatement("INSERT INTO users (username) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
-			smtp.setString(1, user.getUsername());
-			int count = smtp.executeUpdate();
+			PreparedStatement stmt = con.prepareStatement("INSERT INTO users (username) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+			stmt.setString(1, username);
+			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Creating user failed. No row affected.", 1);
-				return null;
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
+				return -1;
 			}
-			int userId = 0;
-			try (ResultSet generatedKeys = smtp.getGeneratedKeys()) {
+			int userId = -1;
+			try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
 					userId = generatedKeys.getInt(1);
-					user.setUserId(userId);
 				} else {
-					TicketPurchaseApplicationLogger.write(Level.WARNING, "Creating user failed. No userid obtained.", 1);
-					return null;
+					TicketPurchaseApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
+					return -1;
 				}
 			}
-			return user;
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Username: " + username + " has successfully created", 0);
+			return userId;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "insert user SQL error", 1);
-			return null;
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error insert user", 1);
+			return -1;
 		}
 	}
 	
-	public User selectUser(User user) {
+	public boolean deleteUser(int userId) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("DELETE FROM users WHERE user_id = ?");
+			stmt.setInt(1, userId);
+			int count = stmt.executeUpdate();
+			if(count == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User not deleted", 1);
+				return false;
+			}
+			return true;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error delete user", 1);
+			return false;
+		}
+	}
+	
+	public String selectUser(int userId) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("SELECT username FROM users WHERE user_id = ?");
-			stmt.setInt(1, user.getUserId());
+			stmt.setInt(1, userId);
 			// execute a query, which returns a ResultSet object
 			ResultSet result = stmt.executeQuery();
 			if(!result.next()) {
 				TicketPurchaseApplicationLogger.write(Level.INFO, "Username not found", 0);
 				return null;
 			}
+			TicketPurchaseApplicationLogger.write(Level.INFO, "User id: " + userId +" exists", 0);
 			String username = result.getString("username");
-			user.setUsername(username);
-			return user;
+			return username;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "User does not exist", 1);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select user", 1);
 			return null;
 		}
 	}
 	
-	//reference: https://github.com/eugenp/tutorials/blob/master/persistence-modules/core-java-persistence/src/main/java/com/baeldung/jdbc/BatchProcessing.java
-	public boolean insertTickets(Ticket ticket, int tickets) {
+	public String selectEventUsers(int userId) {
 		try {
-			PreparedStatement smtp = con.prepareStatement("INSERT INTO tickets (userid, eventid) VALUES (?, ?)");
-			for(int i = 1; i <= tickets; i++) {
-				smtp.setInt(1, ticket.getUserId());
-				smtp.setInt(2, ticket.getEventId());
-				smtp.addBatch();
+			PreparedStatement stmt = con.prepareStatement("SELECT event_id FROM tickets WHERE user_id = ?");
+			stmt.setInt(1, userId);
+			// execute a query, which returns a ResultSet object
+			ResultSet result = stmt.executeQuery();
+			if(!result.next()) {
+				TicketPurchaseApplicationLogger.write(Level.INFO, "", 0);
+				return null;
 			}
-			smtp.executeBatch();
-			con.commit();
+			TicketPurchaseApplicationLogger.write(Level.INFO, "", 0);
+			String username = result.getString("");
+			return username;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "", 1);
+			return null;
+		}
+	}
+	
+	//reference: https://github.codbm/eugenp/tutorials/blob/master/persistence-modules/core-java-persistence/src/main/java/com/baeldung/jdbc/BatchProcessing.java
+	public boolean insertTickets(Ticket ticket, int numTickets) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("INSERT INTO tickets (user_id, event_id) VALUES (?, ?)");
+			for(int i = 1; i <= numTickets; i++) {
+				stmt.setInt(1, ticket.getUserId());
+				stmt.setInt(2, ticket.getEventId());
+				stmt.addBatch();
+			}
+			int count[] = stmt.executeBatch();
+			if(count.length != numTickets) {
+				TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has failed to insert", 0);
+				return false;
+			}
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been inserted successfully", 0);
 			return true;
-		} catch (Exception e) {
-			try {
-				con.rollback();
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Error insert tickets, rollback performed.", 1);
-	        } catch (SQLException ex) {
-	        	TicketPurchaseApplicationLogger.write(Level.WARNING, "Error insert tickets, cannot rollback", 1);
-	        }
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "SQL error insert tickets", 0);
 			return false;
 		}
 	}
 	
-	public boolean countTicket
+	public boolean deleteTickets(Ticket ticket, int numTickets) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("DELETE FROM tickets WHERE event_id = ? AND user_id = ? ORDER BY ticket_id DESC LIMIT ?");
+			stmt.setInt(1, ticket.getEventId());
+			stmt.setInt(2, ticket.getUserId());
+			stmt.setInt(3, numTickets);
+			int count = stmt.executeUpdate();
+			if(count == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets not deleted", 1);
+				return false;
+			}
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been deleted successfully", 0);
+			return true;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error delete tickets", 1);
+			return false;
+		}
+	}
+	
+	public int countTickets(User user, int eventId, int tickets) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("SELECT COUNT(ticket_id) tickets FROM tickets WHERE user_id = ? and event_id = ?");
+			stmt.setInt(1, user.getUserId());
+			stmt.setInt(2, eventId);
+			ResultSet result = stmt.executeQuery();
+			int ticketCount = 0;
+			if(!result.next()) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Ticket does not exists", 1);
+				return -1;
+			} else {
+				ticketCount = result.getInt("tickets");
+			}
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Number of Tickets: " + ticketCount, 0);
+			return ticketCount;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Error count tickets, please try again", 1);
+			return -1;
+		}
+	}
+	
+	public boolean updateTickets(int userId, int targetUserId, int eventId, int numTickets) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("UPDATE tickets SET user_id = ? WHERE user_id = ? and event_id = ? LIMIT ?");
+			stmt.setInt(1, targetUserId);
+			stmt.setInt(2, userId);
+			stmt.setInt(3, eventId);
+			stmt.setInt(4, numTickets);
+			int count = stmt.executeUpdate();
+			if(count == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets not updated", 1);
+				return false;
+			}
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been updated successfully", 0);
+			return true;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Error update tickets, please try again", 1);
+			return false;
+		}
+	}
 }
