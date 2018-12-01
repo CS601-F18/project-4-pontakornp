@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.database.DatabaseManager;
+import cs601.project4.database.Ticket;
 
 
 public class UserServlet extends HttpServlet {
@@ -49,7 +50,7 @@ public class UserServlet extends HttpServlet {
 		if (!isPageFound(request, response)) {
 			return;
 		}
-		response.setContentType("application/json");
+		response.setContentType("application/json; charset=utf-8");
 		String pathInfo = request.getPathInfo().trim();
 		String[] pathParts = pathInfo.split("/");
 		if(pathParts.length == 2 && pathParts[1].equals("create")) {
@@ -125,30 +126,32 @@ public class UserServlet extends HttpServlet {
 	 */
 	private void addTicket(HttpServletRequest request, HttpServletResponse response, int userId) {
 		// check if input is valid
-		if(request.getParameter("eventid") == null || request.getParameter("tickets") == null) {
+		String eventIdStr = request.getParameter("eventid");
+		String numTicketsStr = request.getParameter("tickets");
+		if(eventIdStr == null || numTicketsStr == null || !eventIdStr.matches("\\d+") || !numTicketsStr.matches("\\d+")) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request input invalid", 1);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "Tickets could not be added");
 			return;
 		}
-		try {
-			// check if userid exists and is ticket added
-			int eventid = Integer.parseInt(request.getParameter("eventid"));
-			int tickets = Integer.parseInt(request.getParameter("tickets"));
-			if(!isUserExist(userId)) {
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				sendResponse(response, "Tickets could not be added");
-				return;
-			} else {
-				if(!isTicketAdded(userid, eventid, tickets)) {
-					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-					sendResponse(response, "Tickets could not be added");
-					return;
-				}
-			}
-		} catch (SQLException e) {
+		String username = DatabaseManager.getInstance().selectUser(userId);
+		if(username == null) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - user does not exist", 0);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "Tickets could not be added");
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Failed to execute SQL query.", 1);
+			return;
+		}
+		int eventId = Integer.parseInt(eventIdStr);
+		int numTickets = Integer.parseInt(numTicketsStr);
+		Ticket ticket = new Ticket();
+		ticket.setEventId(eventId);
+		ticket.setUserId(userId);
+		boolean areTicketAdded = DatabaseManager.getInstance().insertTickets(ticket, numTickets);
+		if(!areTicketAdded) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - fail to add", 0);
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			sendResponse(response, "Tickets could not be added");
+			return;
 		}
 		sendResponse(response, "Event tickets added");
 	}
@@ -159,29 +162,33 @@ public class UserServlet extends HttpServlet {
 	 * @param response
 	 * @param userid
 	 */
-	private void transferTicket(HttpServletRequest request, HttpServletResponse response, int userid) {
+	private void transferTicket(HttpServletRequest request, HttpServletResponse response, int userId) {
+		String eventIdStr = request.getParameter("eventid");
+		String numTicketsStr = request.getParameter("tickets");
+		String targetUserIdStr = request.getParameter("targetUserId");
+		
 		// check if input is valid
-		if(request.getParameter("eventid") == null || request.getParameter("tickets") == null || request.getParameter("targetuser") == null) {
+		if(eventIdStr == null || numTicketsStr == null || targetUserIdStr == null || !eventIdStr.matches("\\d+") || !numTicketsStr.matches("\\d+") || !targetUserIdStr.matches("\\d+")) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request input invalid", 1);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "Tickets could not be transfered");
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Invalid body request", 1);
 			return;
 		}
-		try {
-			// check if users transferring the ticket and receiving the ticket exist
-			int targetuser = Integer.parseInt(request.getParameter("targetuser"));
-			int eventid = Integer.parseInt(request.getParameter("eventid"));
-			int tickets = Integer.parseInt(request.getParameter("tickets"));
-			if(!isUserExist(userid) || !isUserExist(targetuser) || !doesUserHasEnoughTickets(userid, eventid, tickets) || !isTicketUpdated(userid, targetuser, eventid, tickets)) {
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				sendResponse(response, "Tickets could not be transfered");
-				return;
-			}
-		} catch (SQLException e) {
+		String username = DatabaseManager.getInstance().selectUser(userId);
+		if(username == null) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - user does not exist", 0);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			sendResponse(response, "Tickets could not be transfered");
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Invalid SQL", 1);
 			return;
+		}
+		
+		int targetUserId = Integer.parseInt(request.getParameter("targetuser"));
+		int eventId = Integer.parseInt(request.getParameter("eventid"));
+		int numTickets = Integer.parseInt(request.getParameter("tickets"));
+		boolean areTicketsTransferred = DatabaseManager.getInstance().updateTickets(userId, targetUserId, eventId, numTickets);
+		if(!areTicketsTransferred) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - fail to transfer", 0);
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		sendResponse(response, "Event tickets transferred");
 	}
