@@ -1,4 +1,4 @@
-package cs601.project4;
+package cs601.project4.unit.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.database.DatabaseManager;
 import cs601.project4.database.Ticket;
 
@@ -75,7 +76,6 @@ public class SqlQueryTest {
 		int targetUserId = dbInstance.insertUser(targetUsername);
 		int eventId = 1;
 		int numTickets = 2;
-		
 		Ticket ticket = new Ticket();
 		ticket.setEventId(eventId);
 		ticket.setUserId(senderId);

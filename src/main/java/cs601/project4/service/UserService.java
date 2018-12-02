@@ -14,7 +14,7 @@ public class UserService {
     	TicketPurchaseApplicationLogger.initialize(UserService.class.getName(), "frontEndServiceLog.txt");
     	DatabaseManager.getInstance();
     	// Create a basic jetty server object that will listen on port 8080.
-        Server server = new Server(8080);
+        Server server = new Server(8082);
         // Create context handler and mount it to the server
         ServletContextHandler handler = new ServletContextHandler();
         server.setHandler(handler);

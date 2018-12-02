@@ -1,7 +1,12 @@
 package cs601.project4.database;
 
+import com.google.gson.annotations.SerializedName;
+
 public class User {
+	@SerializedName("userid")
 	private int userId;
+	
+	@SerializedName("username")
 	private String username;
 	
 	public User() {

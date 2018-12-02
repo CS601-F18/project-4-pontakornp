@@ -1,6 +1,7 @@
 package cs601.project4;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -9,6 +10,7 @@ import java.nio.file.Paths;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonReader;
 
 /**
  * 
@@ -33,27 +35,43 @@ public class Config {
 		Charset cs = Charset.forName("ISO-8859-1");
 		Path path = Paths.get("config.json");
 		Config config = new Config();
-		try(
-			BufferedReader reader = Files.newBufferedReader(path, cs);
-		) {
-			String line;
+//		try(
+//			BufferedReader reader = Files.newBufferedReader(path, cs);
+//		) {
+//			String line;
+//			Gson gson = new Gson();
+//			while((line = reader.readLine()) != null) {
+//				try {
+//					config = gson.fromJson(line, Config.class); // parse variables from config.json file to config object
+//					this.frontendPort = config.frontendPort;
+//					this.eventPort = config.eventPort;
+//					this.userPort = config.userPort;
+//					this.dbUsername = config.dbUsername;
+//					this.dbPassword = config.dbPassword;
+//					this.hostname = config.hostname;
+//					this.db = config.db;
+//				} catch(JsonSyntaxException jse) {
+//					// skip
+//				}
+//			}
+//		}
+//		catch(IOException ioe) {
+//			System.out.println("Please try again with correct config file.");
+//			return false;
+//		}
+//		
+		try {
+			JsonReader jsonReader = new JsonReader(new FileReader("config.json"));
 			Gson gson = new Gson();
-			while((line = reader.readLine()) != null) {
-				try {
-					config = gson.fromJson(line, Config.class); // parse variables from config.json file to config object
-					this.frontendPort = config.frontendPort;
-					this.eventPort = config.eventPort;
-					this.userPort = config.userPort;
-					this.dbUsername = config.dbUsername;
-					this.dbPassword = config.dbPassword;
-					this.hostname = config.hostname;
-					this.db = config.db;
-				} catch(JsonSyntaxException jse) {
-					// skip
-				}
-			}
-		}
-		catch(IOException ioe) {
+			config = gson.fromJson(jsonReader, Config.class);
+			this.frontendPort = config.frontendPort;
+			this.eventPort = config.eventPort;
+			this.userPort = config.userPort;
+			this.dbUsername = config.dbUsername;
+			this.dbPassword = config.dbPassword;
+			this.hostname = config.hostname;
+			this.db = config.db;
+		} catch(IOException ioe) {
 			System.out.println("Please try again with correct config file.");
 			return false;
 		}

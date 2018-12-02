@@ -16,7 +16,7 @@ public class BaseServlet extends HttpServlet {
 	 * @param response
 	 * @param body
 	 */
-	public void sendResponse(HttpServletResponse response, String body) {
+	public static void sendResponse(HttpServletResponse response, String body) {
 		PrintWriter out;
 		try {
 			out = response.getWriter();
@@ -32,7 +32,7 @@ public class BaseServlet extends HttpServlet {
 	 * @param response
 	 * @return
 	 */
-	public boolean isPageFound(HttpServletRequest request, HttpServletResponse response) {
+	public static boolean isPageFound(HttpServletRequest request, HttpServletResponse response) {
 		String pathInfo = request.getPathInfo();
 		if(pathInfo == null || pathInfo.length() <= 1) {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
