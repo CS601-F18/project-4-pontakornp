@@ -269,11 +269,29 @@ public class UserServletTest {
 	}
 	
 	@Test
-	public void testTransferTicketsNumTicketsInvalid() {
+	public void testTransferTicketsNumTicketsZero() {
 		try {
 			String path = "/1/tickets/transfer";
 			int eventId = 1;
 			int numTickets = 0;
+			int targetUserId = 2;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			reqObj.addProperty("targetuser", targetUserId);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsNumTicketsInvalid connection error", 1);
+		}
+	}
+	
+	public void testTransferTicketsNumTicketsInvalid() {
+		try {
+			String path = "/1/tickets/transfer";
+			int eventId = 1;
+			int numTickets = 100;
 			int targetUserId = 2;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty("eventid", eventId);
