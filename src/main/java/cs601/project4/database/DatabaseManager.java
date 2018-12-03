@@ -13,6 +13,11 @@ import java.util.logging.Level;
 import cs601.project4.Config;
 import cs601.project4.TicketPurchaseApplicationLogger;
 
+/**
+ * database manager class handles the database connection and all sql queries of users, events, and tickets tables;
+ * @author pontakornp
+ *
+ */
 public class DatabaseManager {
 	private static DatabaseManager INSTANCE;
 	private static Connection con;
@@ -36,7 +41,6 @@ public class DatabaseManager {
 		//Must set time zone explicitly in newer versions of mySQL.
 		String timeZoneSettings = "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 		//https://stackoverflow.com/questions/21361781/how-to-connect-to-database-connection-in-java
-//		con = null;
 		try {
 			con = DriverManager.getConnection(urlString + timeZoneSettings,
 					username,
@@ -47,14 +51,12 @@ public class DatabaseManager {
 	        TicketPurchaseApplicationLogger.write(Level.WARNING, "Connection failed", 1);
 	        return;
 	    }
-
-//	    if (con != null) {
-//	    	TicketPurchaseApplicationLogger.write(Level.INFO, "Connection established.", 0);
-//	    } else {
-//	        TicketPurchaseApplicationLogger.write(Level.WARNING, "Failed to make connection.", 1);
-//	    }
 	} 
-	
+	/**
+	 * get instance method of database manager class using singleton design
+	 * 
+	 * @return
+	 */
 	public static DatabaseManager getInstance() {
 		if(INSTANCE == null) {
 			INSTANCE = new DatabaseManager();
@@ -109,6 +111,12 @@ public class DatabaseManager {
 		}
 	}
 	
+	/**
+	 * delete user by user id in users table
+	 * 
+	 * @param userId
+	 * @return
+	 */
 	public boolean deleteUser(int userId) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("DELETE FROM users WHERE user_id = ?");
@@ -125,6 +133,12 @@ public class DatabaseManager {
 		}
 	}
 	
+	/**
+	 * select username of a user from users table
+	 * 
+	 * @param userId
+	 * @return
+	 */
 	public String selectUser(int userId) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("SELECT username FROM users WHERE user_id = ?");
@@ -143,6 +157,12 @@ public class DatabaseManager {
 		}
 	}
 	
+	/**
+	 * select event id of a user from tickets table
+	 * 
+	 * @param userId
+	 * @return
+	 */
 	public List<Integer> selectUserEventId(int userId) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("SELECT event_id FROM tickets WHERE user_id = ?");
@@ -160,6 +180,12 @@ public class DatabaseManager {
 		}
 	}
 	
+	/**
+	 * insert event tickets for a user in tickets table
+	 * @param ticket
+	 * @param numTickets
+	 * @return
+	 */
 	//reference: https://github.codbm/eugenp/tutorials/blob/master/persistence-modules/core-java-persistence/src/main/java/com/baeldung/jdbc/BatchProcessing.java
 	public boolean insertTickets(Ticket ticket, int numTickets) {
 		try {
@@ -190,6 +216,13 @@ public class DatabaseManager {
 		}
 	}
 	
+	/**
+	 * delete event tickets of a user from tickets table
+	 * 
+	 * @param ticket
+	 * @param numTickets
+	 * @return
+	 */
 	public boolean deleteTickets(Ticket ticket, int numTickets) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("DELETE FROM tickets WHERE event_id = ? AND user_id = ? ORDER BY ticket_id DESC LIMIT ?");
@@ -210,7 +243,8 @@ public class DatabaseManager {
 	}
 	
 	/**
-	 * count number of tickets of an event that user has
+	 * count number of tickets of an event that user has from tickets table
+	 * 
 	 * @param user
 	 * @param eventId
 	 * @param tickets
@@ -238,7 +272,7 @@ public class DatabaseManager {
 	}
 	
 	/**
-	 * swaps one user with another in ticket tables
+	 * swaps one user with another in tickets table
 	 * 
 	 * @param userId
 	 * @param targetUserId

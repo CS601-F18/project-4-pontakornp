@@ -41,11 +41,21 @@ public class BaseServlet extends HttpServlet {
 		return true;
 	}
 	
+	/**
+	 * send page not found response
+	 * @param response
+	 * @param body
+	 */
 	public static void sendPageNotFoundResponse(HttpServletResponse response,String body) {
 		response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		sendResponse(response, body);
 	}
 	
+	/**
+	 * send bad request response
+	 * @param response
+	 * @param body
+	 */
 	public static void sendBadRequestResponse(HttpServletResponse response,String body) {
 		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		sendResponse(response, body);
