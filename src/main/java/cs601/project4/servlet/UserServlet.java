@@ -248,6 +248,14 @@ public class UserServlet extends HttpServlet {
 		}
 	}
 	
+	private boolean areTicketsEnough(int userId, int eventId, int numTickets) {
+		int userTickets = DatabaseManager.getInstance().countTickets(userId, eventId);
+		if(numTickets <= 0 || userTickets < numTickets) {
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * POST /{userid}/tickets/transfer
 	 * @param request
@@ -275,7 +283,7 @@ public class UserServlet extends HttpServlet {
 		}
 		int eventId = reqObj.get("eventid").getAsInt();
 		int numTickets = reqObj.get("tickets").getAsInt();
-		if(numTickets <= 0) {
+		if(!areTicketsEnough(userId, eventId, numTickets)) {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - invalid number of tickets", 0);
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be added");
 			return;

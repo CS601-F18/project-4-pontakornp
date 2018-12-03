@@ -209,10 +209,17 @@ public class DatabaseManager {
 		}
 	}
 	
-	public int countTickets(User user, int eventId, int tickets) {
+	/**
+	 * count number of tickets of an event that user has
+	 * @param user
+	 * @param eventId
+	 * @param tickets
+	 * @return
+	 */
+	public int countTickets(int userId, int eventId) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("SELECT COUNT(ticket_id) tickets FROM tickets WHERE user_id = ? and event_id = ?");
-			stmt.setInt(1, user.getUserId());
+			stmt.setInt(1, userId);
 			stmt.setInt(2, eventId);
 			ResultSet result = stmt.executeQuery();
 			int ticketCount = 0;
@@ -230,6 +237,15 @@ public class DatabaseManager {
 		}
 	}
 	
+	/**
+	 * swaps one user with another in ticket tables
+	 * 
+	 * @param userId
+	 * @param targetUserId
+	 * @param eventId
+	 * @param numTickets
+	 * @return
+	 */
 	public boolean updateTickets(int userId, int targetUserId, int eventId, int numTickets) {
 		try {
 			PreparedStatement stmt = con.prepareStatement("UPDATE tickets SET user_id = ? WHERE user_id = ? and event_id = ? LIMIT ?");
@@ -249,4 +265,5 @@ public class DatabaseManager {
 			return false;
 		}
 	}
+
 }
