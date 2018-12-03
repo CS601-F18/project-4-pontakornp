@@ -35,10 +35,19 @@ public class BaseServlet extends HttpServlet {
 	public static boolean isPageFound(HttpServletRequest request, HttpServletResponse response) {
 		String pathInfo = request.getPathInfo();
 		if(pathInfo == null || pathInfo.length() <= 1) {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			sendResponse(response, "Page not found");
+			sendPageNotFoundResponse(response, "Page not found");
 			return false;
 		}
 		return true;
+	}
+	
+	public static void sendPageNotFoundResponse(HttpServletResponse response,String body) {
+		response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		sendResponse(response, body);
+	}
+	
+	public static void sendBadRequestResponse(HttpServletResponse response,String body) {
+		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		sendResponse(response, body);
 	}
 }

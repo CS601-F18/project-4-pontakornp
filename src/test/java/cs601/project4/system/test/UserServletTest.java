@@ -37,9 +37,7 @@ public class UserServletTest {
 			URL url = new URL(urlString);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
-			
 			String responseStr = getBodyResponse(con);
-//			int responseCode = con.getResponseCode();
 			JSONObject jsonObj = new JSONObject(responseStr);
 			assertTrue(jsonObj.get("userid") instanceof Integer);
 			assertTrue(jsonObj.get("username") instanceof String);
@@ -202,7 +200,7 @@ public class UserServletTest {
 	public void testAddTicketsEventInvalid() {
 		try {
 			String path = "/1/tickets/add";
-			int eventId = 1000;
+			String eventId = "abc";
 			int numTickets = 2;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty("eventid", eventId);
@@ -255,7 +253,7 @@ public class UserServletTest {
 	public void testTransferTicketsEventInvalid() {
 		try {
 			String path = "/1/tickets/transfer";
-			int eventId = 1000;
+			String eventId = "abc";
 			int numTickets = 2;
 			int targetUserId = 2;
 			JsonObject reqObj = new JsonObject();

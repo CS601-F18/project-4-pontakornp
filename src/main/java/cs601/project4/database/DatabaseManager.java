@@ -171,13 +171,21 @@ public class DatabaseManager {
 			}
 			int count[] = stmt.executeBatch();
 			if(count.length != numTickets) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has failed to insert", 0);
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets has failed to insert", 1);
+				//revert back
+				if(count.length > 0) {
+					if(deleteTickets(ticket, count.length)) {
+						TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets inserted incompletely has been reverted back", 0);
+					} else {
+						TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets inserted incompletely could not be reverted back", 1);
+					}
+				}
 				return false;
 			}
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been inserted successfully", 0);
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "SQL error insert tickets", 0);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error insert tickets", 1);
 			return false;
 		}
 	}
