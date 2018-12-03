@@ -2,6 +2,7 @@ package cs601.project4.servlet;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -9,16 +10,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
+import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.database.DatabaseManager;
 import cs601.project4.database.Ticket;
+import cs601.project4.database.User;
 
 
 public class UserServlet extends HttpServlet {
@@ -52,19 +55,23 @@ public class UserServlet extends HttpServlet {
 		if (!BaseServlet.isPageFound(request, response)) {
 			return;
 		}
-		response.setContentType("application/json; charset=UTF-8");
+		response.setContentType("application/json; charset=utf-8");
 		String pathInfo = request.getPathInfo().trim();
 		String[] pathParts = pathInfo.split("/");
 		if(pathParts.length == 2 && pathParts[1].equals("create")) {
 			createUser(request, response);
-		} else if(pathParts.length == 4 && pathParts[2].equals("tickets") && pathParts[3].equals("add")) { 
-			int userid = Integer.parseInt(pathParts[1]);
-			addTicket(request, response, userid);
-		} else if(pathParts.length == 4 && pathParts[2].equals("tickets") && pathParts[3].equals("transfer")) { 
-			int userid = Integer.parseInt(pathParts[1]);
-			transferTicket(request, response, userid);
+		} else if(pathParts.length == 4 && StringUtils.isNumeric(pathParts[1]) && pathParts[2].equals("tickets")) { 
+			if(pathParts[3].equals("add")) {
+				int userId = Integer.parseInt(pathParts[1]);
+				addTicket(request, response, userId);
+			} else if(pathParts[3].equals("transfer")) {
+				int userId = Integer.parseInt(pathParts[1]);
+				transferTicket(request, response, userId);
+			} else {
+				// 404
+			}
 		} else {
-			// page not found
+			// 404
 		}
 	}
 	
@@ -81,24 +88,47 @@ public class UserServlet extends HttpServlet {
 			BaseServlet.sendResponse(response, "User does not own any ticket");
 			return;
 		}
-        JSONObject userObj = new JSONObject();
-        userObj.put("userid", userId);
-		userObj.put("username", username);
+		JsonObject userObj = new JsonObject();
+		userObj.addProperty("userid", userId);
+		userObj.addProperty("username", username);
 		List<Integer> eventIdList = DatabaseManager.getInstance().selectUserEventId(userId);
 		if(eventIdList == null || eventIdList.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			BaseServlet.sendResponse(response, "User does not own any ticket");
 			return;
 		}
-		JSONArray arrObj = new JSONArray();
+		JsonArray arrObj = new JsonArray();
 		for(int eventId: eventIdList) {
 			// put tickets info to json object
-			JSONObject ticketObj = new JSONObject();
-			ticketObj.put("eventid", eventId);
-			arrObj.put(ticketObj);
+			JsonObject ticketObj = new JsonObject();
+			ticketObj.addProperty("eventid", eventId);
+			arrObj.add(ticketObj);
 		}
-		userObj.put("tickets", arrObj);
+		userObj.add("tickets", arrObj);
 		BaseServlet.sendResponse(response, userObj.toString());
+	}
+	
+	/**
+	 * Helper method for createUser - if the request body is valid and return User object
+	 * @param request
+	 * @param response
+	 * @return User object or null
+	 */
+	private User createUserHelper(HttpServletRequest request, HttpServletResponse response) {
+		try {
+			String jsonStr = IOUtils.toString(request.getReader());
+			if(!JsonParserHelper.isJsonString(jsonStr)) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - request body is not json string", 1);
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				BaseServlet.sendResponse(response, "User unsuccessfully created");
+				return null;
+			}
+			User user = JsonParserHelper.parseJsonStringToObject(jsonStr, User.class);
+			return user;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get username from request body", 1);
+			return null;
+		}
 	}
 	
 	/**
@@ -107,24 +137,14 @@ public class UserServlet extends HttpServlet {
 	 * @param response
 	 */
 	private void createUser(HttpServletRequest request, HttpServletResponse response) {
-		String json = null;
-		String username = null;
-		try {
-			BufferedReader reader = request.getReader();
-			JsonParser parser = new JsonParser();
-			JsonObject jsonObj = parser.parse(reader).getAsJsonObject();
-			if(jsonObj.get("username") != null) {
-				username = jsonObj.get("username").getAsString();
-			}
-		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get username from request body", 1);
-		}
-		if(username == null || username.equals("") || !StringUtils.isAlphanumeric(username)) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - username not alphanumeric", 1);
+		User user = createUserHelper(request, response);
+		if(user == null || user.getUsername() == null || !StringUtils.isAlphanumeric(user.getUsername())) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - username is null or non-alphanumeric", 1);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			BaseServlet.sendResponse(response, "User unsuccessfully created");
 			return;
 		}
+		String username = user.getUsername();
 		int userId = DatabaseManager.getInstance().insertUser(username);
 		if(userId == -1) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - user cannot be created", 1);
@@ -139,21 +159,47 @@ public class UserServlet extends HttpServlet {
 	}
 	
 	/**
+	 * Helper method for add ticket - if the request body is valid and return Json Object
+	 * @param request
+	 * @param response
+	 * @return JsonObject or null
+	 */
+	private JsonObject addTicketHelper(HttpServletRequest request, HttpServletResponse response) {
+		try {
+			String jsonStr = IOUtils.toString(request.getReader());
+			JsonObject reqObj = JsonParserHelper.parseJsonStringToJsonObject(jsonStr);
+			if(reqObj == null) {
+//			if(!JsonParserHelper.isJsonString(jsonStr)) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request body is not json string", 1);
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//				BaseServlet.sendResponse(response, "Tickets could not be added");
+				return null;
+			}
+			
+			if(reqObj.get("eventid") == null || 
+					reqObj.get("tickets") == null || 
+					!StringUtils.isNumeric(reqObj.get("eventid").getAsString()) ||
+					!StringUtils.isNumeric(reqObj.get("tickets").getAsString())) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request body invalid", 1);
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				System.out.println("Damn");
+//				BaseServlet.sendResponse(response, "Tickets could not be added");
+				return null;
+			}
+			return reqObj;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get eventid/tickets from request body", 1);
+			return null;
+		}
+	}
+	
+	/**
 	 * POST /{userid}/tickets/add
 	 * @param request
 	 * @param response
 	 * @param userid
 	 */
 	private void addTicket(HttpServletRequest request, HttpServletResponse response, int userId) {
-		// check if input is valid
-		String eventIdStr = request.getParameter("eventid");
-		String numTicketsStr = request.getParameter("tickets");
-		if(eventIdStr == null || numTicketsStr == null || !eventIdStr.matches("\\d+") || !numTicketsStr.matches("\\d+")) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request input invalid", 1);
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			BaseServlet.sendResponse(response, "Tickets could not be added");
-			return;
-		}
 		String username = DatabaseManager.getInstance().selectUser(userId);
 		if(username == null) {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - user does not exist", 0);
@@ -161,8 +207,14 @@ public class UserServlet extends HttpServlet {
 			BaseServlet.sendResponse(response, "Tickets could not be added");
 			return;
 		}
-		int eventId = Integer.parseInt(eventIdStr);
-		int numTickets = Integer.parseInt(numTicketsStr);
+		JsonObject reqObj = addTicketHelper(request,response);
+		if(reqObj == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			BaseServlet.sendResponse(response, "Tickets could not be added");
+			return;
+		}
+		int eventId = reqObj.get("eventid").getAsInt();
+		int numTickets = reqObj.get("tickets").getAsInt();
 		Ticket ticket = new Ticket();
 		ticket.setEventId(eventId);
 		ticket.setUserId(userId);
@@ -177,35 +229,63 @@ public class UserServlet extends HttpServlet {
 	}
 	
 	/**
+	 * Helper method for transferTicket - if the request body is valid and return JsonObject
+	 * @param request
+	 * @param response
+	 * @return JsonObject or null
+	 */
+	private JsonObject transferTicketHelper(HttpServletRequest request, HttpServletResponse response) {
+		try {
+			String jsonStr = IOUtils.toString(request.getReader());
+			JsonObject reqObj = JsonParserHelper.parseJsonStringToJsonObject(jsonStr);
+			if(reqObj == null) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - request body is not json string", 1);
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				return null;
+			}
+			if(reqObj.get("eventid") == null || 
+					reqObj.get("tickets") == null || 
+					reqObj.get("targetuser") == null || 
+					!StringUtils.isNumeric(reqObj.get("eventid").getAsString()) ||
+					!StringUtils.isNumeric(reqObj.get("tickets").getAsString()) || 
+					!StringUtils.isNumeric(reqObj.get("targetuser").getAsString())) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - request body invalid", 1);
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				return null;
+			}
+			return reqObj;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get eventid/tickets/targetuser from request body", 1);
+			return null;
+		}
+	}
+	
+	/**
 	 * POST /{userid}/tickets/transfer
 	 * @param request
 	 * @param response
 	 * @param userid
 	 */
 	private void transferTicket(HttpServletRequest request, HttpServletResponse response, int userId) {
-		String eventIdStr = request.getParameter("eventid");
-		String numTicketsStr = request.getParameter("tickets");
-		String targetUserIdStr = request.getParameter("targetUserId");
-		// check if input is valid
-		if(eventIdStr == null || numTicketsStr == null || targetUserIdStr == null || !eventIdStr.matches("\\d+") || !numTicketsStr.matches("\\d+") || !targetUserIdStr.matches("\\d+")) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request input invalid", 1);
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			BaseServlet.sendResponse(response, "Tickets could not be transfered");
-			return;
-		}
 		String username = DatabaseManager.getInstance().selectUser(userId);
 		if(username == null) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - user does not exist", 0);
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be transferred - user does not exist", 0);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			BaseServlet.sendResponse(response, "Tickets could not be transfered");
 			return;
 		}
-		int targetUserId = Integer.parseInt(request.getParameter("targetuser"));
-		int eventId = Integer.parseInt(request.getParameter("eventid"));
-		int numTickets = Integer.parseInt(request.getParameter("tickets"));
+		JsonObject reqObj = transferTicketHelper(request,response);
+		if(reqObj == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			BaseServlet.sendResponse(response, "Tickets could not be transfered");
+			return;
+		}
+		int targetUserId = reqObj.get("targetuser").getAsInt();
+		int eventId = reqObj.get("eventid").getAsInt();
+		int numTickets = reqObj.get("tickets").getAsInt();
 		boolean areTicketsTransferred = DatabaseManager.getInstance().updateTickets(userId, targetUserId, eventId, numTickets);
 		if(!areTicketsTransferred) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - fail to transfer", 0);
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be transferred - fail to transfer", 0);
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 		BaseServlet.sendResponse(response, "Event tickets transferred");

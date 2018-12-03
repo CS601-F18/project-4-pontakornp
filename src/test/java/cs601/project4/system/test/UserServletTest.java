@@ -2,21 +2,20 @@ package cs601.project4.system.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.logging.Level;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
@@ -32,7 +31,7 @@ public class UserServletTest {
 	}
 	
 	@Test
-	public void testGetUserBody() {
+	public void testGetUserResponseBody() {
 		try {
 			String urlString = host + "/1";
 			URL url = new URL(urlString);
@@ -92,67 +91,57 @@ public class UserServletTest {
 		}
 	}
 	
-	//reference: https://www.mkyong.com/java/how-to-send-http-request-getpost-in-java/
 	public String getBodyResponse(HttpURLConnection con) throws IOException {
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String inputLine;
-		StringBuffer response = new StringBuffer();
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
-		}
-		in.close();
-		return response.toString();
+		String bodyResponse = IOUtils.toString(con.getInputStream(), "UTF-8");
+		return bodyResponse;
 	}
 	
-	@Test
-	public void testCreateUserBody() {
-		try {
-			String urlString = host + "/create";
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			con.setRequestMethod("POST");
-			String username = "testCreateUser" + (int)(Math.random()*1000);
-			con.setDoOutput(true);
-			con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-			con.setRequestProperty("Accept", "application/json");
-			JSONObject reqObj = new JSONObject();
-			reqObj.put("username", username);
-			OutputStreamWriter w = new OutputStreamWriter(con.getOutputStream());
-			w.write(reqObj.toString());
-			w.flush();
-			w.close();
-			String responseStr = getBodyResponse(con);
-			JsonObject resObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
-			assertTrue(resObj.get("userid") != null);
-		} catch (IOException e) {
-			e.printStackTrace();
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserBody connection error", 1);
-		}
-	}
-	
-	public int getCreateUserResponseCode(String username) throws IOException{
-		String urlString = host + "/create";
+	public HttpURLConnection getConnection(String path, JsonObject reqObj) throws IOException{
+		String urlString = host + path;
 		URL url = new URL(urlString);
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
 		con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 		con.setRequestProperty("Accept", "application/json");
-		JSONObject reqObj = new JSONObject();
-		reqObj.put("username", username);
 		OutputStreamWriter w = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
+		
+//		DataOutputStream s = new DataOutputStream(con.getOutputStream());
+//		System.out.println(reqObj.toString());
+//		s.writeBytes(reqObj.toString());
+//		s.flush();
+//		s.close();
 		w.write(reqObj.toString());
 		w.flush();
 		w.close();
-		int responseCode = con.getResponseCode();
-		return responseCode;
+		return con;
+	}
+
+	@Test
+	public void testCreateUserResponseBody() {
+		try {
+			String path = "/create";
+			String username = "testCreateUser" + (int)(Math.random()*1000);
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("username", username);
+			HttpURLConnection con = getConnection(path, reqObj);
+			String responseStr = getBodyResponse(con);
+			JsonObject resObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
+			assertTrue(resObj.get("userid") != null);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserBody connection error", 1);
+		}
 	}
 	
 	@Test
 	public void testCreateUserValid() {
 		try {
+			String path = "/create";
 			String username = "testCreateUser" + (int)(Math.random()*1000);
-			int responseCode = getCreateUserResponseCode(username);
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("username", username);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserValid connection error", 1);
@@ -162,11 +151,160 @@ public class UserServletTest {
 	@Test
 	public void testCreateUserInvalid() {
 		try {
+			String path = "/create";
 			String username = "testCreteUser" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
-			int responseCode = getCreateUserResponseCode(username);
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("username", username);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserInvalid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testAddTicketsValid() {
+		try {
+			String path = "/1/tickets/add";
+			int eventId = 1;
+			int numTickets = 2;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			System.out.println(reqObj.toString());
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(200, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testAddTicketsUserInvalid() {
+		try {
+			String path = "/1000/tickets/add";
+			int eventId = 1;
+			int numTickets = 2;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testAddTicketsEventInvalid() {
+		try {
+			String path = "/1/tickets/add";
+			int eventId = 1000;
+			int numTickets = 2;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testAddTicketsNumTicketsInvalid() {
+		try {
+			String path = "/1/tickets/add";
+			int eventId = 1;
+			int numTickets = 0;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testTransferTicketsValid() {
+		try {
+			String path = "/1/tickets/transfer";
+			int eventId = 1;
+			int numTickets = 2;
+			int targetUserId = 2;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			reqObj.addProperty("targetuser", targetUserId);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(200, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsValid connection error", 1);
+		}
+	}
+
+	@Test
+	public void testTransferTicketsEventInvalid() {
+		try {
+			String path = "/1/tickets/transfer";
+			int eventId = 1000;
+			int numTickets = 2;
+			int targetUserId = 2;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			reqObj.addProperty("targetuser", targetUserId);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsEventInvalid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testTransferTicketsNumTicketsInvalid() {
+		try {
+			String path = "/1/tickets/transfer";
+			int eventId = 1;
+			int numTickets = 0;
+			int targetUserId = 2;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			reqObj.addProperty("targetuser", targetUserId);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsNumTicketsInvalid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testTransferTicketsTargetUserInvalid() {
+		try {
+			String path = "/1/tickets/transfer";
+			int eventId = 1;
+			int numTickets = 2;
+			int targetUserId = 1000;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty("eventid", eventId);
+			reqObj.addProperty("tickets", numTickets);
+			reqObj.addProperty("targetuser", targetUserId);
+			HttpURLConnection con = getConnection(path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsTargetUserInvalid connection error", 1);
 		}
 	}
 }
