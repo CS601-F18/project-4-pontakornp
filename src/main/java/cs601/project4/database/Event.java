@@ -12,6 +12,9 @@ public class Event {
 	@SerializedName("userid")
 	private int userId;
 	
+	@SerializedName("numtickets")
+	private int numTickets;
+	
 	@SerializedName("avail")
 	private int numTicketAvail;
 	
@@ -22,10 +25,11 @@ public class Event {
 		
 	}
 	
-	public Event(int eventId, String eventName, int userId, int numTicketAvail, int numTicketPurchased) {
+	public Event(int eventId, String eventName, int userId, int numTickets, int numTicketAvail, int numTicketPurchased) {
 		this.eventId = eventId;
 		this.eventName = eventName;
 		this.userId = userId;
+		this.numTickets = numTickets;
 		this.numTicketAvail = numTicketAvail;
 		this.numTicketPurchased = numTicketPurchased;
 	}
@@ -54,6 +58,14 @@ public class Event {
 		this.userId = userId;
 	}
 
+	public int getNumTickets() {
+		return numTickets;
+	}
+
+	public void setNumTickets(int numTickets) {
+		this.numTickets = numTickets;
+	}
+	
 	public int getNumTicketAvail() {
 		return numTicketAvail;
 	}
