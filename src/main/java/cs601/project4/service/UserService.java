@@ -11,24 +11,20 @@ import cs601.project4.servlet.UserServlet;
 
 public class UserService {
 	public static void main(String args[]) {
-    	TicketPurchaseApplicationLogger.initialize(UserService.class.getName(), "frontEndServiceLog.txt");
+    	TicketPurchaseApplicationLogger.initialize(UserService.class.getName(), "UserServiceLog.txt");
     	DatabaseManager.getInstance();
-    	// Create a basic jetty server object that will listen on port 8080.
+    	// Create a jetty server object that will listen on port 8081.
         Server server = new Server(8082);
         // Create context handler and mount it to the server
         ServletContextHandler handler = new ServletContextHandler();
         server.setHandler(handler);
         // Pass in the class for the Servlet to instantiate an instance of that Servlet and mount it on a given context path
-        
-//        handler.addServlet(new ServletHolder(SessionServlet.class), "/");
-//        handler.addServlet(SessionServlet.class, "/session");
         handler.addServlet(UserServlet.class, "/*");
-        // Start the server
         try {
 			server.start();
 			server.join(); // wait for the thread to die
 		} catch (Exception e) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "There's error from the server", 0);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "There's error from the server", 1);
 		}
     }
 }

@@ -7,42 +7,50 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class EventServlet extends HttpServlet{
-	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		
-		//GET /echo
-		
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
-		
-		PrintWriter out = response.getWriter();
-		out.println("<html><title>EchoServlet</title><body>");
-		
-		out.println("<form action=\"echo\" method=\"post\">");
-		out.println("Message: <br/>");
-		out.println("<input type=\"text\" name=\"usermsg\"/><br/>");
-		out.println("<input type=\"submit\" value=\"Submit\"/></form>");		
-		
-//		out.println("<a href=http://localhost:8080/hello>Say Hello</a><br/>");
-//		out.println("<a href=http://localhost:8080/goodbye>Say Goodbye</a><br/>");
-		
-		out.println("</body></html>");
+import org.apache.commons.lang3.StringUtils;
 
-		
-		
+public class EventServlet extends HttpServlet{
+	/**
+	 * do GET operation according to specified path
+	 * GET /list
+	 * GET /{eventid}
+	 */
+	public void doGet(HttpServletRequest request, HttpServletResponse response) {
+		if (!BaseServlet.isPageFound(request, response)) {
+			return;
+		}
+		response.setContentType("application/json; charset=utf-8");
+		String pathInfo = request.getPathInfo();
+		String[] pathParts = pathInfo.split("/");
+		if(pathParts.length == 2 && pathParts[1] == "list") {
+			//createEvent
+		} else if(pathParts.length == 2 && StringUtils.isNumeric(pathParts[1])) {
+			int eventId = Integer.parseInt(pathInfo.substring(1));
+			//getEventDetails
+		} else {
+			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
+		}
 	}
 	
-	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	/**
+	 * do POST operation according to specified path
+	 * POST /create
+	 * POST /purchase/{eventid}
+	 */
+	public void doPost(HttpServletRequest request, HttpServletResponse response) {
+		if (!BaseServlet.isPageFound(request, response)) {
+			return;
+		}
+		response.setContentType("application/json; charset=utf-8");
+		String pathInfo = request.getPathInfo().trim();
+		String[] pathParts = pathInfo.split("/");
 		
-		//POST /echo
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
-		
-		PrintWriter out = response.getWriter();
-
-		String msg = request.getParameter("usermsg");
-		
-		out.println("<html><title>EchoServlet</title><body>You said: " + msg + "</body></html>");
-
+		if(pathParts.length == 2 && pathParts[1] == "create") {
+			
+		} else if(pathParts.length == 3 && pathParts[1] == "purchase" && StringUtils.isNumeric(pathParts[2])) {
+			
+		} else {
+			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
+		}
 	}
 }

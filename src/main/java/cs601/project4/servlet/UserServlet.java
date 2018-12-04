@@ -36,12 +36,11 @@ public class UserServlet extends HttpServlet {
 		response.setContentType("application/json; charset=utf-8");
 		String pathInfo = request.getPathInfo();
 		String[] pathParts = pathInfo.split("/");
-		if(pathParts.length == 2 && pathParts[1].matches("\\d+")) {
-			int userid = Integer.parseInt(pathInfo.substring(1));
-			getUserDetails(request, response, userid);
+		if(pathParts.length == 2 && StringUtils.isNumeric(pathParts[1])) {
+			int userId = Integer.parseInt(pathInfo.substring(1));
+			getUserDetails(request, response, userId);
 		} else {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			BaseServlet.sendResponse(response, "User unsuccessfully created");
+			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
 		}
 	}
 	
@@ -262,7 +261,7 @@ public class UserServlet extends HttpServlet {
 	 * @param response
 	 * @param userid
 	 */
-	private void transferTicket(HttpServletRequest request, HttpServletResponse response, int userId) {
+	private synchronized void transferTicket(HttpServletRequest request, HttpServletResponse response, int userId) {
 		String username = DatabaseManager.getInstance().selectUser(userId);
 		if(username == null) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - user does not exist", 1);

@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.database.DatabaseManager;
+import cs601.project4.database.Event;
 import cs601.project4.database.Ticket;
 
 public class SqlQueryTest {
@@ -86,5 +87,39 @@ public class SqlQueryTest {
 		dbInstance.deleteUser(targetUserId);
 		ticket.setUserId(targetUserId);
 		dbInstance.deleteTickets(ticket, numTickets);
+	}
+	
+	@Test
+	public void testInsertEvent() {
+		Event event = new Event();
+		event.setEventName("testInsertEvent01");
+		event.setUserId(1);
+		event.setNumTicketAvail(5);
+		event.setNumTicketPurchased(0);
+		int eventId = dbInstance.insertEvent(event);
+		assertTrue(eventId != -1);
+		dbInstance.deleteEvent(eventId);
+	}
+	
+	@Test
+	public void testSelectEvents() {
+		List<Event> list = dbInstance.selectEvents();
+		assertTrue(list != null);
+	}
+	
+	@Test
+	public void testSelectEvent() {
+		Event event = dbInstance.selectEvent(1);
+		assertTrue(event != null);
+	}
+	
+	@Test
+	public void testUpdateEvent() {
+		Event event = new Event();
+		event.setEventId(2);
+		event.setNumTicketAvail(3);
+		event.setNumTicketPurchased(1);
+		boolean isEventUpdated = dbInstance.updateEvent(event);
+		assertTrue(isEventUpdated);
 	}
 }

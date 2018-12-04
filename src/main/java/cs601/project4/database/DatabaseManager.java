@@ -94,17 +94,15 @@ public class DatabaseManager {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
 				return -1;
 			}
-			int userId = -1;
-			try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-				if (generatedKeys.next()) {
-					userId = generatedKeys.getInt(1);
-				} else {
-					TicketPurchaseApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
-					return -1;
-				}
+			ResultSet result = stmt.getGeneratedKeys();
+			if(result.next()) {
+				TicketPurchaseApplicationLogger.write(Level.INFO, "Username: " + username + " has successfully created", 0);
+				int userId = result.getInt(1);
+				return userId;
+			} else {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
+				return -1;
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Username: " + username + " has successfully created", 0);
-			return userId;
 		} catch (SQLException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error insert user", 1);
 			return -1;
@@ -158,7 +156,7 @@ public class DatabaseManager {
 	}
 	
 	/**
-	 * select event id of a user from tickets table
+	 * select list of event ids of a user from tickets table
 	 * 
 	 * @param userId
 	 * @return
@@ -175,7 +173,7 @@ public class DatabaseManager {
 			}
 			return list;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "", 1);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select list of event id", 1);
 			return null;
 		}
 	}
@@ -266,7 +264,7 @@ public class DatabaseManager {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Number of Tickets: " + ticketCount, 0);
 			return ticketCount;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Error count tickets, please try again", 1);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error count tickets", 1);
 			return -1;
 		}
 	}
@@ -295,7 +293,146 @@ public class DatabaseManager {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been updated successfully", 0);
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Error update tickets, please try again", 1);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error update tickets", 1);
+			return false;
+		}
+	}
+	
+	/**
+	 * insert event details to events table
+	 * 
+	 * @param event
+	 * @return
+	 */
+	public int insertEvent(Event event) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("INSERT INTO events (event_name, user_id, num_ticket_avail, num_ticket_purchased) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			stmt.setString(1, event.getEventName());
+			stmt.setInt(2, event.getUserId());
+			stmt.setInt(3, event.getNumTicketAvail());
+			stmt.setInt(4,  event.getNumTicketPurchased());
+			int count = stmt.executeUpdate();
+			if(count == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not inserted", 1);
+				return -1;
+			}
+			ResultSet result = stmt.getGeneratedKeys();
+			if(result.next()) {
+				TicketPurchaseApplicationLogger.write(Level.INFO, "Event has been inserted successfully", 0);
+				int eventId = result.getInt(1);
+				return eventId;
+			} else {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event failed to be inserted", 1);
+				return -1;
+			}
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error insert event", 1);
+			return -1;
+		}
+	}
+	
+	/**
+	 * delete event by event id from events table
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	public boolean deleteEvent(int eventId) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("DELETE FROM events WHERE event_id = ?");
+			stmt.setInt(1, eventId);
+			int count = stmt.executeUpdate();
+			if(count == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not deleted", 1);
+				return false;
+			}
+			return true;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error delete event", 1);
+			return false;
+		}
+	}
+	
+	/**
+	 * select event list from events table
+	 * 
+	 * @return list of event object
+	 */
+	public List<Event> selectEvents() {
+		try {
+			PreparedStatement stmt = con.prepareStatement("SELECT * FROM events");
+			ResultSet result = stmt.executeQuery();
+			List<Event> list = new ArrayList<Event>();
+			while (result.next()) {
+				Event event = new Event();
+				event.setEventId(result.getInt("event_id"));
+				event.setEventName(result.getString("event_name"));
+				event.setUserId(result.getInt("user_id"));
+				event.setNumTicketAvail(result.getInt("num_ticket_avail"));
+				event.setNumTicketPurchased(result.getInt("num_ticket_purchased"));
+				list.add(event);
+			}
+			if(list.isEmpty()) {
+				TicketPurchaseApplicationLogger.write(Level.INFO, "Events not found", 0);
+				return null;
+			}
+			return list;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select all event", 1);
+			return null;
+		}
+	} 
+	
+	/**
+	 * select event details from events table
+	 * 
+	 * @param eventId
+	 * @return event object
+	 */
+	public Event selectEvent(int eventId) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("SELECT * FROM events WHERE event_id = ?");
+			stmt.setInt(1, eventId);
+			ResultSet result = stmt.executeQuery();
+			if(!result.next()) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found", 1);
+				return null;
+			}
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Event id: " + eventId +" exists", 0);
+			Event event = new Event();
+			event.setEventId(eventId);
+			event.setEventName(result.getString("event_name"));
+			event.setUserId(result.getInt("user_id"));
+			event.setNumTicketAvail(result.getInt("num_ticket_avail"));
+			event.setNumTicketPurchased(result.getInt("num_ticket_purchased"));
+			return event;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select event", 1);
+			return null;
+		}
+	}
+	
+	/**
+	 * update number of ticket available and number of tickets purchased of an event in events table
+	 * 
+	 * @param event
+	 * @return true or false
+	 */
+	public boolean updateEvent(Event event) {
+		try {
+			PreparedStatement stmt = con.prepareStatement("UPDATE events SET num_ticket_avail = ?, num_ticket_purchased = ? WHERE event_id = ?");
+			stmt.setInt(1, event.getNumTicketAvail());
+			stmt.setInt(2, event.getNumTicketPurchased());
+			stmt.setInt(3, event.getEventId());
+			int count = stmt.executeUpdate();
+			if(count == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not updated", 1);
+				return false;
+			}
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Event has been updated successfully", 0);
+			return true;
+		} catch (SQLException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error update event", 1);
 			return false;
 		}
 	}
