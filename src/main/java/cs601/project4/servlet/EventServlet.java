@@ -1,6 +1,11 @@
 package cs601.project4.servlet;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
 import java.util.logging.Level;
 
 import javax.servlet.http.HttpServlet;
@@ -10,6 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
@@ -61,6 +69,59 @@ public class EventServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * GET /list
+	 * GET method to give the list of events available
+	 * @param request
+	 * @param response
+	 */
+	public void getEventList(HttpServletRequest request, HttpServletResponse response) {
+		List<Event> events = DatabaseManager.getInstance().selectEvents();
+		JsonArray arrObj = new JsonArray();
+		if(events != null) {
+			for(Event event: events) {
+				JsonObject jsonObj = new JsonObject();
+				jsonObj.addProperty("eventid", event.getEventId());
+				jsonObj.addProperty("eventname", event.getEventName());
+				jsonObj.addProperty("userid", event.getUserId());
+				jsonObj.addProperty("avail", event.getNumTicketAvail());
+				jsonObj.addProperty("purchased", event.getNumTicketPurchased());
+				arrObj.add(jsonObj);
+			}
+		}
+		BaseServlet.sendResponse(response, arrObj.toString());
+	}
+	
+	/**
+	 * GET /{eventid}
+	 * GET method to get event details of an event
+	 * 
+	 * @param request
+	 * @param response
+	 */
+	public void getEventDetails(HttpServletRequest request, HttpServletResponse response, int eventId) {
+		Event event = DatabaseManager.getInstance().selectEvent(eventId);
+		if(event == null) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found", 1);
+			BaseServlet.sendBadRequestResponse(response, "Event not found");
+			return;
+		}
+		JsonObject eventObj = new JsonObject();
+		eventObj.addProperty("eventid", eventId);
+		eventObj.addProperty("eventname", event.getEventName());
+		eventObj.addProperty("userid", event.getUserId());
+		eventObj.addProperty("avail", event.getNumTicketAvail());
+		eventObj.addProperty("purchased", event.getNumTicketPurchased());
+		BaseServlet.sendResponse(response, eventObj.toString());
+	}
+	
+	
+	
+	/**
+	 * Helper method of create event to handle validation of json request
+	 * @param request
+	 * @return Event object
+	 */
 	public Event createEventHelper(HttpServletRequest request) {
 		try {
 			String jsonStr = IOUtils.toString(request.getReader());
@@ -76,6 +137,36 @@ public class EventServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * Helper method of create event - create client to call User Service to check if user exists or not
+	 * @param userId
+	 * @return
+	 */
+	public boolean doesUserExist(int userId) {
+		//ini config
+		try {
+			String host = "http://localhost:8082";
+			String urlString = host + "/" + userId;
+			URL url = new URL(urlString);
+			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			con.setRequestMethod("GET");
+			int responseCode = con.getResponseCode();
+			if(responseCode != 200) {
+				return false;
+			}
+			return true;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "User service connection error", 1);
+			return false;
+		}
+	}
+	
+	/**
+	 * POST /create
+	 * POST method to create event from event details passing along the body request
+	 * @param request
+	 * @param response
+	 */
 	public void createEvent(HttpServletRequest request, HttpServletResponse response) {
 		Event event = createEventHelper(request);
 		if(event == null || 
@@ -86,6 +177,11 @@ public class EventServlet extends HttpServlet{
 			BaseServlet.sendBadRequestResponse(response, "User unsuccessfully created");
 			return;
 		}
+		//create client to call User Service to check if user exists or not
+		
+		
+		
+		
 		int numTickets = event.getNumTickets();
 		event.setNumTicketAvail(numTickets);
 		event.setNumTicketPurchased(0);
@@ -100,4 +196,5 @@ public class EventServlet extends HttpServlet{
 		String body = eventObj.toString();
 		BaseServlet.sendResponse(response, body);
 	}
+	
 }
