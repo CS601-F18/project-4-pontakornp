@@ -7,7 +7,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import cs601.project4.DatabaseManager;
 import cs601.project4.TicketPurchaseApplicationLogger;
-import cs601.project4.servlet.UserServlet;
+import cs601.project4.servlet.EventServlet;
 
 public class EventService {
 	public static void main(String args[]) {
@@ -19,7 +19,7 @@ public class EventService {
         ServletContextHandler handler = new ServletContextHandler();
         server.setHandler(handler);
         // Pass in the class for the Servlet to instantiate an instance of that Servlet and mount it on a given context path
-        handler.addServlet(UserServlet.class, "/*");
+        handler.addServlet(EventServlet.class, "/*");
         try {
 			server.start();
 			server.join(); // wait for the thread to die

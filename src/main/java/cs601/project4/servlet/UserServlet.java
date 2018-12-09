@@ -119,6 +119,9 @@ public class UserServlet extends HttpServlet {
 				return null;
 			}
 			User user = JsonParserHelper.parseJsonStringToObject(jsonStr, User.class);
+			if(user == null || user.getUsername() == null || !StringUtils.isAlphanumeric(user.getUsername())) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - username is null or non-alphanumeric", 1);
+			}
 			return user;
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get username from request body", 1);
@@ -133,8 +136,7 @@ public class UserServlet extends HttpServlet {
 	 */
 	private void createUser(HttpServletRequest request, HttpServletResponse response) {
 		User user = createUserHelper(request);
-		if(user == null || user.getUsername() == null || !StringUtils.isAlphanumeric(user.getUsername())) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - username is null or non-alphanumeric", 1);
+		if(user == null) {
 			BaseServlet.sendBadRequestResponse(response, "User unsuccessfully created");
 			return;
 		}
