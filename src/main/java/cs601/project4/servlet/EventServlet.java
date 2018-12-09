@@ -132,13 +132,11 @@ public class EventServlet extends HttpServlet{
 			Config config = new Config();
 			config.setVariables();
 			String hostname = config.getHostname();
-			String port = config.getUserPort();
+			int port = config.getUserPort();
 			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
 			path = String.format(path, userId);
-			String urlString = hostname + ":" + port + path;
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			con.setRequestMethod("GET");
+			String host = hostname + ":" + port;
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			int responseCode = con.getResponseCode();
 			if(responseCode != 200) {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "User not found", 1);
@@ -219,7 +217,7 @@ public class EventServlet extends HttpServlet{
 			Config config = new Config();
 			config.setVariables();
 			String hostname = config.getHostname();
-			String port = config.getUserPort();
+			int port = config.getUserPort();
 			String host = hostname + ":" + port;
 			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
 			path = String.format(path, reqObj.get(EventJsonConstant.USER_ID).getAsInt());
@@ -256,12 +254,12 @@ public class EventServlet extends HttpServlet{
 				return null;
 			}
 			reqObj.get(EventJsonConstant.USER_ID).getAsInt();
-			int eventId = reqObj.get(EventJsonConstant.EVENT_ID).getAsInt();
+			reqObj.get(EventJsonConstant.EVENT_ID).getAsInt();
 			reqObj.get(EventJsonConstant.TICKETS).getAsInt();
 			return reqObj;
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get event details to update from request body", 1);
-		} catch (ClassCastException e) {
+		} catch (NumberFormatException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get event details to update from request body", 1);
 		}
 		return null;

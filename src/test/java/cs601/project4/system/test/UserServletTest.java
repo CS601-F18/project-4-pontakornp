@@ -16,27 +16,37 @@ import org.junit.Test;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import cs601.project4.Config;
+import cs601.project4.HttpConnectionHelper;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.object.EventServicePathConstant;
+import cs601.project4.object.UserJsonConstant;
+import cs601.project4.object.UserServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
 
 public class UserServletTest {
-//	HttpURLConnection con;
-	String host = "http://localhost:8082";
+	private static String host;
 	
 	@BeforeClass
 	public static void initialize() {
 		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "UserServletTest.txt");
+		Config config = new Config();
+		config.setVariables();
+		String hostname = config.getHostname();
+		int port = config.getUserPort();
+		host = hostname + ":" + port;
+		
 	}
 	
 	@Test
 	public void testGetUserResponseBody() {
 		try {
-			String urlString = host + "/1";
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
+			path = String.format(path, 1);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
-			String responseStr = getBodyResponse(con);
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
 			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
 			assertTrue(jsonObj.get("userid").getAsBigInteger() instanceof BigInteger);
 			assertTrue(jsonObj.get("username").getAsString() instanceof String);
@@ -49,9 +59,9 @@ public class UserServletTest {
 	@Test
 	public void testGetUserValid() {
 		try {
-			String urlString = host + "/1";
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
+			path = String.format(path, 1);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
@@ -63,23 +73,9 @@ public class UserServletTest {
 	@Test
 	public void testGetUserInvalid() {
 		try {
-			String urlString = host + "/abc";
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			con.setRequestMethod("GET");
-			int responseCode = con.getResponseCode();
-			assertEquals(400, responseCode);
-		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetUserInvalid connection error", 1);
-		}
-	}
-	
-	@Test
-	public void testGetUserNotExist() {
-		try {
-			String urlString = host + "/1000";
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
+			path = String.format(path, 1000);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
@@ -88,41 +84,29 @@ public class UserServletTest {
 		}
 	}
 	
-	private String getBodyResponse(HttpURLConnection con) throws IOException {
-		String bodyResponse = IOUtils.toString(con.getInputStream(), "UTF-8");
-		return bodyResponse;
-	}
-	
-	private HttpURLConnection getConnection(String path, JsonObject reqObj) throws IOException{
-		String urlString = host + path;
-		URL url = new URL(urlString);
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
-		con.setRequestMethod("POST");
-		con.setDoOutput(true);
-		con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-		con.setRequestProperty("Accept", "application/json");
-		OutputStreamWriter w = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
-		
-//		DataOutputStream s = new DataOutputStream(con.getOutputStream());
-//		System.out.println(reqObj.toString());
-//		s.writeBytes(reqObj.toString());
-//		s.flush();
-//		s.close();
-		w.write(reqObj.toString());
-		w.flush();
-		w.close();
-		return con;
+	@Test
+	public void testGetPathInvalid() {
+		try {
+			String path = "/%s";
+			path = String.format(path, "abc");
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
+			con.setRequestMethod("GET");
+			int responseCode = con.getResponseCode();
+			assertEquals(404, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetPathInvalid connection error", 1);
+		}
 	}
 
 	@Test
 	public void testCreateUserResponseBody() {
 		try {
-			String path = "/create";
+			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testCreateUser" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty("username", username);
-			HttpURLConnection con = getConnection(path, reqObj);
-			String responseStr = getBodyResponse(con);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
 			JsonObject resObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
 			assertTrue(resObj.get("userid") != null);
 		} catch (IOException e) {
@@ -133,11 +117,11 @@ public class UserServletTest {
 	@Test
 	public void testCreateUserValid() {
 		try {
-			String path = "/create";
+			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testCreateUser" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty("username", username);
-			HttpURLConnection con = getConnection(path, reqObj);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
@@ -148,11 +132,11 @@ public class UserServletTest {
 	@Test
 	public void testCreateUserInvalid() {
 		try {
-			String path = "/create";
+			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testCreteUser" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty("username", username);
-			HttpURLConnection con = getConnection(path, reqObj);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -163,14 +147,15 @@ public class UserServletTest {
 	@Test
 	public void testAddTicketsValid() {
 		try {
-			String path = "/1/tickets/add";
+			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 2;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty("eventid", eventId);
 			reqObj.addProperty("tickets", numTickets);
 			System.out.println(reqObj.toString());
-			HttpURLConnection con = getConnection(path, reqObj);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
@@ -179,15 +164,16 @@ public class UserServletTest {
 	}
 	
 	@Test
-	public void testAddTicketsUserInvalid() {
+	public void testAddTicketsUserIdInvalid() {
 		try {
-			String path = "/1000/tickets/add";
+			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			path = String.format(path, 1000);
 			int eventId = 1;
 			int numTickets = 2;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -196,15 +182,16 @@ public class UserServletTest {
 	}
 	
 	@Test
-	public void testAddTicketsEventInvalid() {
+	public void testAddTicketsEventIdInvalid() {
 		try {
-			String path = "/1/tickets/add";
+			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			path = String.format(path, 1);
 			String eventId = "abc";
 			int numTickets = 2;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -215,13 +202,14 @@ public class UserServletTest {
 	@Test
 	public void testAddTicketsNumTicketsInvalid() {
 		try {
-			String path = "/1/tickets/add";
+			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 0;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -232,15 +220,16 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsValid() {
 		try {
-			String path = "/1/tickets/transfer";
+			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 2;
 			int targetUserId = 2;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			reqObj.addProperty("targetuser", targetUserId);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			reqObj.addProperty(UserJsonConstant.TARGET_USER, targetUserId);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
@@ -251,15 +240,16 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsEventInvalid() {
 		try {
-			String path = "/1/tickets/transfer";
+			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			path = String.format(path, 1);
 			String eventId = "abc";
 			int numTickets = 2;
 			int targetUserId = 2;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			reqObj.addProperty("targetuser", targetUserId);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			reqObj.addProperty(UserJsonConstant.TARGET_USER, targetUserId);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -270,15 +260,16 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsNumTicketsZero() {
 		try {
-			String path = "/1/tickets/transfer";
+			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 0;
 			int targetUserId = 2;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			reqObj.addProperty("targetuser", targetUserId);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			reqObj.addProperty(UserJsonConstant.TARGET_USER, targetUserId);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -286,17 +277,19 @@ public class UserServletTest {
 		}
 	}
 	
+	@Test
 	public void testTransferTicketsNumTicketsInvalid() {
 		try {
-			String path = "/1/tickets/transfer";
+			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 100;
 			int targetUserId = 2;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			reqObj.addProperty("targetuser", targetUserId);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			reqObj.addProperty(UserJsonConstant.TARGET_USER, targetUserId);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -307,15 +300,15 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsTargetUserInvalid() {
 		try {
-			String path = "/1/tickets/transfer";
+			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
 			int eventId = 1;
 			int numTickets = 2;
 			int targetUserId = 1000;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			reqObj.addProperty("targetuser", targetUserId);
-			HttpURLConnection con = getConnection(path, reqObj);
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
+			reqObj.addProperty(UserJsonConstant.TARGET_USER, targetUserId);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {

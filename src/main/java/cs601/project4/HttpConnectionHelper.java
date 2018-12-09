@@ -10,15 +10,15 @@ import org.apache.commons.io.IOUtils;
 import com.google.gson.JsonObject;
 
 public class HttpConnectionHelper {
-	public static String getBodyResponse(HttpURLConnection con) throws IOException {
-		String bodyResponse = IOUtils.toString(con.getInputStream(), "UTF-8");
-		return bodyResponse;
-	}
-	
-	public static HttpURLConnection getConnection(String host, String path, JsonObject reqObj) throws IOException{
+	public static HttpURLConnection getConnection(String host, String path) throws IOException{
 		String urlString = host + path;
 		URL url = new URL(urlString);
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		return con;
+	}
+	
+	public static HttpURLConnection getConnection(String host, String path, JsonObject reqObj) throws IOException{
+		HttpURLConnection con = getConnection(host,path);
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
 		con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
@@ -28,5 +28,10 @@ public class HttpConnectionHelper {
 		w.flush();
 		w.close();
 		return con;
+	}
+	
+	public static String getBodyResponse(HttpURLConnection con) throws IOException {
+		String bodyResponse = IOUtils.toString(con.getInputStream(), "UTF-8");
+		return bodyResponse;
 	}
 }

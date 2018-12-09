@@ -21,9 +21,9 @@ import com.google.gson.stream.JsonReader;
  */
 public class Config {
 	private String hostname;
-	private String frontendPort;
-	private String eventPort;
-	private String userPort;
+	private int frontendPort;
+	private int eventPort;
+	private int userPort;
 	private String dbUsername;
 	private String dbPassword;
 	private String dbHostname;
@@ -64,32 +64,32 @@ public class Config {
 		this.hostname = hostname;
 	}
 
-	public String getFrontendPort() {
+	public int getFrontendPort() {
 		return frontendPort;
 	}
 
 
-	public void setFrontendPort(String frontendPort) {
+	public void setFrontendPort(int frontendPort) {
 		this.frontendPort = frontendPort;
 	}
 
 
-	public String getEventPort() {
+	public int getEventPort() {
 		return eventPort;
 	}
 
 
-	public void setEventPort(String eventPort) {
+	public void setEventPort(int eventPort) {
 		this.eventPort = eventPort;
 	}
 
 
-	public String getUserPort() {
+	public int getUserPort() {
 		return userPort;
 	}
 
 
-	public void setUserPort(String userPort) {
+	public void setUserPort(int userPort) {
 		this.userPort = userPort;
 	}
 

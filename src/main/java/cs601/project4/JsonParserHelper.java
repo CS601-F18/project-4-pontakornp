@@ -29,9 +29,17 @@ public class JsonParserHelper {
 	}
 	
 	public static <T> T parseJsonStringToObject(String jsonStr, Class<T> objClass) {
-		Gson gson = new Gson();
-		T obj = gson.fromJson(jsonStr, objClass);
-		return obj;
+		try {
+			JsonParser parser = new JsonParser(); 
+			if(!parser.parse(jsonStr).isJsonObject()) {
+				return null;
+			}
+			Gson gson = new Gson();
+			T obj = gson.fromJson(jsonStr, objClass);
+			return obj;
+		} catch (JsonSyntaxException e) {
+			return null;
+		}
 	}
 	
 	public static <T> String parseObjectToJsonString(T object) {

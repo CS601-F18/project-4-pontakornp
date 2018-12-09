@@ -16,6 +16,7 @@ import org.junit.Test;
 import com.google.gson.JsonObject;
 
 import cs601.project4.Config;
+import cs601.project4.HttpConnectionHelper;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.object.EventJsonConstant;
@@ -23,36 +24,16 @@ import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
 
 public class EventServletTest {
-	private static String eventUrl;
+	private static String host;
 	
 	@BeforeClass
 	public static void initialize() {
+		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "EventServletTest.txt");
 		Config config = new Config();
 		config.setVariables();
 		String hostname = config.getHostname();
-		String port = config.getEventPort();
-		eventUrl = hostname + ":" + port;
-		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "EventServletTest.txt");
-	}
-	
-	private String getBodyResponse(HttpURLConnection con) throws IOException {
-		String bodyResponse = IOUtils.toString(con.getInputStream(), "UTF-8");
-		return bodyResponse;
-	}
-	
-	private HttpURLConnection getConnection(String path, JsonObject reqObj) throws IOException{
-		String urlString = eventUrl + path;
-		URL url = new URL(urlString);
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
-		con.setRequestMethod("POST");
-		con.setDoOutput(true);
-		con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-		con.setRequestProperty("Accept", "application/json");
-		OutputStreamWriter w = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
-		w.write(reqObj.toString());
-		w.flush();
-		w.close();
-		return con;
+		int port = config.getEventPort();
+		host = hostname + ":" + port;
 	}
 	
 	@Test
@@ -60,11 +41,9 @@ public class EventServletTest {
 		try {
 			String path = EventServicePathConstant.GET_EVENT_DETAILS_PATH;
 			path = String.format(path, 1);
-			String urlString = eventUrl + path;
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
-			String responseStr = getBodyResponse(con);
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
 			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
 			assertEquals(1 ,jsonObj.get(EventJsonConstant.EVENT_ID).getAsInt());
 			assertEquals("blockchain" ,jsonObj.get(EventJsonConstant.EVENT_NAME).getAsString());
@@ -81,9 +60,7 @@ public class EventServletTest {
 		try {
 			String path = EventServicePathConstant.GET_EVENT_DETAILS_PATH;
 			path = String.format(path, 1);
-			String urlString = eventUrl + path;
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
@@ -93,13 +70,11 @@ public class EventServletTest {
 	}
 	
 	@Test
-	public void testGetEventDetailsNotExist() {
+	public void testGetEventDetailsInvalid() {
 		try {
 			String path = EventServicePathConstant.GET_EVENT_DETAILS_PATH;
 			path = String.format(path, 1000);
-			String urlString = eventUrl + path;
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
@@ -113,9 +88,7 @@ public class EventServletTest {
 		try {
 			String path = "/%s";
 			path = String.format(path, "car");
-			String urlString = eventUrl + path;
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
 			assertEquals(404, responseCode);
@@ -128,9 +101,7 @@ public class EventServletTest {
 	public void testGetEventListValid() {
 		try {
 			String path = EventServicePathConstant.GET_EVENT_LIST_PATH;
-			String urlString = eventUrl + path;
-			URL url = new URL(urlString);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
@@ -150,8 +121,8 @@ public class EventServletTest {
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
 			reqObj.addProperty(EventJsonConstant.EVENT_NAME, eventName);
 			reqObj.addProperty(EventJsonConstant.NUM_TICKETS, numTickets);
-			HttpURLConnection con = getConnection(path, reqObj);
-			String responseStr = getBodyResponse(con);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
 			JsonObject resObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
 			assertTrue(resObj.get(EventJsonConstant.EVENT_ID) != null);
 		} catch (IOException e) {
@@ -170,7 +141,7 @@ public class EventServletTest {
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
 			reqObj.addProperty(EventJsonConstant.EVENT_NAME, eventName);
 			reqObj.addProperty(EventJsonConstant.NUM_TICKETS, numTickets);
-			HttpURLConnection con = getConnection(path, reqObj);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
@@ -189,7 +160,26 @@ public class EventServletTest {
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
 			reqObj.addProperty(EventJsonConstant.EVENT_NAME, eventName);
 			reqObj.addProperty(EventJsonConstant.NUM_TICKETS, numTickets);
-			HttpURLConnection con = getConnection(path, reqObj);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testCreateEventJsonInvalid() {
+		try {
+			String path = EventServicePathConstant.POST_CREATE_EVENT_PATH;
+			String userId = "create";
+			String eventName = "testCreateEventInvalid" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
+			int numTickets = 5;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
+			reqObj.addProperty(EventJsonConstant.EVENT_NAME, eventName);
+			reqObj.addProperty(EventJsonConstant.NUM_TICKETS, numTickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
@@ -209,7 +199,7 @@ public class EventServletTest {
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
 			reqObj.addProperty(EventJsonConstant.EVENT_ID, eventId);
 			reqObj.addProperty(EventJsonConstant.TICKETS, tickets);
-			HttpURLConnection con = getConnection(path, reqObj);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
@@ -229,7 +219,63 @@ public class EventServletTest {
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
 			reqObj.addProperty(EventJsonConstant.EVENT_ID, eventId);
 			reqObj.addProperty(EventJsonConstant.TICKETS, tickets);
-			HttpURLConnection con = getConnection(path, reqObj);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testPurchaseEventIdInvalid() {
+		try {
+			String path = EventServicePathConstant.POST_PURCHASE_TICKETS_PATH;
+			int eventId = 1;
+			path = String.format(path, eventId);
+			String eventIdString = "purchase";
+			int userId = 1;
+			int tickets = 5;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
+			reqObj.addProperty(EventJsonConstant.EVENT_ID, eventIdString);
+			reqObj.addProperty(EventJsonConstant.TICKETS, tickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testPurchaseJsonInvalid() {
+		try {
+			String path = EventServicePathConstant.POST_PURCHASE_TICKETS_PATH;
+			int eventId = 1;
+			path = String.format(path, eventId);
+			String userId = "purchase";
+			int tickets = 5;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
+			reqObj.addProperty(EventJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(EventJsonConstant.TICKETS, tickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testPurchaseEmptyJsonInvalid() {
+		try {
+			String path = EventServicePathConstant.POST_PURCHASE_TICKETS_PATH;
+			int eventId = 1;
+			path = String.format(path, eventId);
+			JsonObject reqObj = new JsonObject();
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {

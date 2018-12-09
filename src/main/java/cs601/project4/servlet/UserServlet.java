@@ -1,8 +1,6 @@
 package cs601.project4.servlet;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -12,7 +10,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONObject;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -22,6 +19,7 @@ import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.object.Ticket;
 import cs601.project4.object.User;
+import cs601.project4.object.UserJsonConstant;
 
 
 public class UserServlet extends HttpServlet {
@@ -88,8 +86,8 @@ public class UserServlet extends HttpServlet {
 			return;
 		}
 		JsonObject userObj = new JsonObject();
-		userObj.addProperty("userid", userId);
-		userObj.addProperty("username", username);
+		userObj.addProperty(UserJsonConstant.USER_ID, userId);
+		userObj.addProperty(UserJsonConstant.USERNAME, username);
 		List<Integer> eventIdList = DatabaseManager.getInstance().selectUserEventId(userId);
 		if(eventIdList == null || eventIdList.isEmpty()) {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "User does not own any ticket", 0);
@@ -99,10 +97,10 @@ public class UserServlet extends HttpServlet {
 		for(int eventId: eventIdList) {
 			// put tickets info to json object
 			JsonObject ticketObj = new JsonObject();
-			ticketObj.addProperty("eventid", eventId);
+			ticketObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
 			arrObj.add(ticketObj);
 		}
-		userObj.add("tickets", arrObj);
+		userObj.add(UserJsonConstant.TICKETS, arrObj);
 		BaseServlet.sendResponse(response, userObj.toString());
 	}
 	
@@ -121,6 +119,7 @@ public class UserServlet extends HttpServlet {
 			User user = JsonParserHelper.parseJsonStringToObject(jsonStr, User.class);
 			if(user == null || user.getUsername() == null || !StringUtils.isAlphanumeric(user.getUsername())) {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - username is null or non-alphanumeric", 1);
+				return null;
 			}
 			return user;
 		} catch (IOException e) {
@@ -147,8 +146,8 @@ public class UserServlet extends HttpServlet {
 			BaseServlet.sendBadRequestResponse(response, "User unsuccessfully created");
 			return;
 		}
-		JSONObject userObj = new JSONObject();
-		userObj.put("userid", userId);
+		JsonObject userObj = new JsonObject();
+		userObj.addProperty(UserJsonConstant.USER_ID, userId);
 		String body = userObj.toString();
 		BaseServlet.sendResponse(response, body);
 	}
@@ -167,18 +166,18 @@ public class UserServlet extends HttpServlet {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request body is not json string", 1);
 				return null;
 			}
-			if(reqObj.get("eventid") == null || reqObj.get("tickets") == null) {
-				reqObj.get("eventid").getAsInt();
-				reqObj.get("tickets").getAsInt();
+			if(reqObj.get(UserJsonConstant.EVENT_ID) == null || reqObj.get(UserJsonConstant.TICKETS) == null) {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request body invalid", 1);
 				return null;
 			}
+			reqObj.get(UserJsonConstant.EVENT_ID).getAsInt();
+			reqObj.get(UserJsonConstant.TICKETS).getAsInt();
 			return reqObj;
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get eventid/tickets from request body", 1);
-		} catch (ClassCastException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get eventid/tickets from request body", 1);	
-		}// malformed
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get add ticket details from request body", 1);
+		} catch (NumberFormatException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get add ticket details from request body", 1);
+		}
 		return null;
 	}
 	
@@ -200,8 +199,8 @@ public class UserServlet extends HttpServlet {
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be added");
 			return;
 		}
-		int eventId = reqObj.get("eventid").getAsInt();
-		int numTickets = reqObj.get("tickets").getAsInt();
+		int eventId = reqObj.get(UserJsonConstant.EVENT_ID).getAsInt();
+		int numTickets = reqObj.get(UserJsonConstant.TICKETS).getAsInt();
 		if(numTickets <= 0) {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - invalid number of tickets", 0);
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be added");
@@ -233,20 +232,22 @@ public class UserServlet extends HttpServlet {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - request body is not json string", 1);
 				return null;
 			}
-			if(reqObj.get("eventid") == null || 
-					reqObj.get("tickets") == null || 
-					reqObj.get("targetuser") == null || 
-					!StringUtils.isNumeric(reqObj.get("eventid").getAsString()) ||
-					!StringUtils.isNumeric(reqObj.get("tickets").getAsString()) || 
-					!StringUtils.isNumeric(reqObj.get("targetuser").getAsString())) {
+			if(reqObj.get(UserJsonConstant.EVENT_ID) == null || 
+					reqObj.get(UserJsonConstant.TICKETS) == null || 
+					reqObj.get(UserJsonConstant.TARGET_USER) == null) {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - request body invalid", 1);
 				return null;
 			}
+			reqObj.get(UserJsonConstant.EVENT_ID).getAsInt();
+			reqObj.get(UserJsonConstant.TICKETS).getAsInt();
+			reqObj.get(UserJsonConstant.TARGET_USER).getAsInt();
 			return reqObj;
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get eventid/tickets/targetuser from request body", 1);
-			return null;
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get transfer ticket details from request body", 1);
+		} catch (NumberFormatException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get transfer ticket details from request body", 1);
 		}
+		return null;
 	}
 	
 	private boolean areTicketsEnough(int userId, int eventId, int numTickets) {
@@ -275,24 +276,25 @@ public class UserServlet extends HttpServlet {
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be transfered");
 			return;
 		}
-		int targetUserId = reqObj.get("targetuser").getAsInt();
+		int targetUserId = reqObj.get(UserJsonConstant.TARGET_USER).getAsInt();
 		String targetUsername = DatabaseManager.getInstance().selectUser(targetUserId);
 		if(targetUsername == null) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - target user does not exist", 1);
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be transfered");
 			return;
 		}
-		int eventId = reqObj.get("eventid").getAsInt();
-		int numTickets = reqObj.get("tickets").getAsInt();
+		int eventId = reqObj.get(UserJsonConstant.EVENT_ID).getAsInt();
+		int numTickets = reqObj.get(UserJsonConstant.TICKETS).getAsInt();
 		if(!areTicketsEnough(userId, eventId, numTickets)) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be added - invalid number of tickets", 0);
-			BaseServlet.sendBadRequestResponse(response, "Tickets could not be added");
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be transfered - invalid number of tickets", 0);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be transfered");
 			return;
 		}
 		boolean areTicketsTransferred = DatabaseManager.getInstance().updateTickets(userId, targetUserId, eventId, numTickets);
 		if(!areTicketsTransferred) {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be transferred - fail to transfer", 0);
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be transfered");
+			return;
 		}
 		BaseServlet.sendResponse(response, "Event tickets transferred");
 	}
