@@ -88,11 +88,11 @@ public class EventServlet extends HttpServlet{
 		if(events != null) {
 			for(Event event: events) {
 				JsonObject jsonObj = new JsonObject();
-				jsonObj.addProperty("eventid", event.getEventId());
-				jsonObj.addProperty("eventname", event.getEventName());
-				jsonObj.addProperty("userid", event.getUserId());
-				jsonObj.addProperty("avail", event.getNumTicketAvail());
-				jsonObj.addProperty("purchased", event.getNumTicketPurchased());
+				jsonObj.addProperty(EventJsonConstant.EVENT_ID, event.getEventId());
+				jsonObj.addProperty(EventJsonConstant.EVENT_NAME, event.getEventName());
+				jsonObj.addProperty(EventJsonConstant.USER_ID, event.getUserId());
+				jsonObj.addProperty(EventJsonConstant.AVAIL, event.getNumTicketAvail());
+				jsonObj.addProperty(EventJsonConstant.PURCHASED, event.getNumTicketPurchased());
 				arrObj.add(jsonObj);
 			}
 		}
@@ -114,11 +114,11 @@ public class EventServlet extends HttpServlet{
 			return;
 		}
 		JsonObject eventObj = new JsonObject();
-		eventObj.addProperty("eventid", eventId);
-		eventObj.addProperty("eventname", event.getEventName());
-		eventObj.addProperty("userid", event.getUserId());
-		eventObj.addProperty("avail", event.getNumTicketAvail());
-		eventObj.addProperty("purchased", event.getNumTicketPurchased());
+		eventObj.addProperty(EventJsonConstant.EVENT_ID, eventId);
+		eventObj.addProperty(EventJsonConstant.EVENT_NAME, event.getEventName());
+		eventObj.addProperty(EventJsonConstant.USER_ID, event.getUserId());
+		eventObj.addProperty(EventJsonConstant.AVAIL, event.getNumTicketAvail());
+		eventObj.addProperty(EventJsonConstant.PURCHASED, event.getNumTicketPurchased());
 		BaseServlet.sendResponse(response, eventObj.toString());
 	}
 	
@@ -202,7 +202,7 @@ public class EventServlet extends HttpServlet{
 			return;
 		}
 		JSONObject eventObj = new JSONObject();
-		eventObj.put("eventid", eventId);
+		eventObj.put(EventJsonConstant.EVENT_ID, eventId);
 		String body = eventObj.toString();
 		BaseServlet.sendResponse(response, body);
 	}
@@ -252,12 +252,12 @@ public class EventServlet extends HttpServlet{
 			if(reqObj.get(EventJsonConstant.USER_ID) == null || 
 					reqObj.get(EventJsonConstant.EVENT_ID) == null || 
 					reqObj.get(EventJsonConstant.TICKETS) == null) {
-				reqObj.get(EventJsonConstant.USER_ID).getAsInt();
-				reqObj.get(EventJsonConstant.EVENT_ID).getAsInt();
-				reqObj.get(EventJsonConstant.TICKETS).getAsInt();
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - request body invalid", 1);
 				return null;
 			}
+			reqObj.get(EventJsonConstant.USER_ID).getAsInt();
+			int eventId = reqObj.get(EventJsonConstant.EVENT_ID).getAsInt();
+			reqObj.get(EventJsonConstant.TICKETS).getAsInt();
 			return reqObj;
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get event details to update from request body", 1);
@@ -267,17 +267,71 @@ public class EventServlet extends HttpServlet{
 		return null;
 	}
 	
+	private boolean updateEventObject(JsonObject reqObj, Event event) {
+		int numTicketToPurchase = reqObj.get(EventJsonConstant.TICKETS).getAsInt();
+		int numTicketAvail = event.getNumTicketAvail();
+		int numTicketPurchased = event.getNumTicketPurchased();
+		if(numTicketToPurchase > numTicketAvail) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be purchased - not enough available number of tickets", 0);
+			return false;
+		}
+		event.setNumTicketAvail(numTicketAvail - numTicketToPurchase);
+		event.setNumTicketPurchased(numTicketPurchased + numTicketToPurchase);
+		return true;
+	}
+	
+	private boolean updateEvent(Event event) {
+		boolean isUpdated = DatabaseManager.getInstance().updateEvent(event);
+		if(!isUpdated) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - event not updated", 1);
+			return false;
+		}
+		return true;
+	}
+	
+	private void rollbackUpdatedEvent(Event event) {
+		boolean isRollback = DatabaseManager.getInstance().updateEvent(event);
+		if(!isRollback) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Updated event fails to rollback", 1);
+		} else {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Updated event has rollbacked successfully", 0);
+		}
+	}
+	
+	private boolean manageAddTickets(JsonObject reqObj, Event event, int numTicketAvailBeforeUpdate, int numTicketPurchasedBeforeUpdate) {
+		//if add ticket fail, return 400
+		if(!addTickets(reqObj)) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - tickets not added", 1);
+			event.setNumTicketAvail(numTicketAvailBeforeUpdate);
+			event.setNumTicketPurchased(numTicketPurchasedBeforeUpdate);
+			//rollback the number of tickets updated in events table
+			rollbackUpdatedEvent(event);
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean purchaseTicketsHelper(JsonObject reqObj, Event event) {
+		if(!updateEventObject(reqObj, event)) {
+			return false;
+		}
+		int numTicketAvailBeforeUpdate = event.getNumTicketAvail();
+		int numTicketPurchasedBeforeUpdate = event.getNumTicketPurchased();
+		if(!updateEvent(event)) {
+			return false;
+		}
+		if(!manageAddTickets(reqObj, event, numTicketAvailBeforeUpdate, numTicketPurchasedBeforeUpdate)) {
+			return false;
+		}
+		return true;
+	}
+	
 	private synchronized void purchaseTickets(HttpServletRequest request, HttpServletResponse response, int eventId) {
 		//check if json from request body is valid
 		JsonObject reqObj = purchaseTicketsHelper(request);
-		if(reqObj == null) {
+		if(reqObj == null || reqObj.get(EventJsonConstant.EVENT_ID).getAsInt() != eventId) {
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
-		}
-		//check if event id from request body match with the event id from the path
-		if(eventId != reqObj.get("eventid").getAsInt()) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - event ids mismatched", 1);
-			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 		}
 		//check if event exists
 		Event event = DatabaseManager.getInstance().selectEvent(eventId);
@@ -286,33 +340,7 @@ public class EventServlet extends HttpServlet{
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
 		}
-		int numTicketToPurchase = reqObj.get("tickets").getAsInt();
-		int numTicketAvail = event.getNumTicketAvail();
-		int numTicketPurchased = event.getNumTicketPurchased();
-		if(numTicketToPurchase > numTicketAvail) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be purchased - not enough available number of tickets", 0);
-			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
-			return;
-		}
-		event.setNumTicketAvail(numTicketAvail - numTicketToPurchase);
-		event.setNumTicketPurchased(numTicketPurchased + numTicketToPurchase);
-		//update number of tickets in events table
-		boolean areEventUpdated = DatabaseManager.getInstance().updateEvent(event);
-		if(!areEventUpdated) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - event not updated", 1);
-			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
-			return;
-		}
-		//if add ticket fail, return 400
-		if(!addTickets(reqObj)) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - tickets not added", 1);
-			//rollback the number of tickets updated in events table
-			event.setNumTicketAvail(numTicketAvail);
-			event.setNumTicketPurchased(numTicketPurchased);
-			boolean areEventUpdatedRollback = DatabaseManager.getInstance().updateEvent(event);
-			if(!areEventUpdatedRollback) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event updated do not rollback", 1);
-			}
+		if(!purchaseTicketsHelper(reqObj, event)) {
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
 		}
