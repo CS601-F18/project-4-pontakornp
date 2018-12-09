@@ -2,7 +2,6 @@ package cs601.project4.servlet;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 

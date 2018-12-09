@@ -9,9 +9,7 @@ import com.google.gson.JsonSyntaxException;
 
 public class JsonParserHelper {
 	public static JsonObject parseReaderToJsonObject(BufferedReader reader) {
-		JsonParser parser = new JsonParser(); 
-//		JsonObject jsonObj = parser.parse(reader).getAsJsonObject();
-//		return jsonObj;
+		JsonParser parser = new JsonParser();
 		if(!parser.parse(reader).isJsonObject()) {
 			return null;
 		}
@@ -48,31 +46,6 @@ public class JsonParserHelper {
 		return jsonStr;
 	}
 	
-	//reference: https://stackoverflow.com/questions/10174898/how-to-check-whether-a-given-string-is-valid-json-in-java/10174938#10174938
-//	public static boolean isJsonString(String jsonStr) {
-//        try {
-//            new JSONObject(jsonStr);
-//        } catch (JSONException ex) {
-//            try {
-//                new JSONArray(jsonStr);
-//            } catch (JSONException ex1) {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-//	public static boolean isJsonString(String jsonStr) {
-//		try{
-//			JsonParser parser = new JsonParser();
-//			parser.parse(jsonStr);
-//		} 
-//			catch(JsonSyntaxException jse){
-//			System.out.println("Not a valid Json String:"+jse.getMessage());
-//			return false;
-//		}
-//		return true;
-//	}
-	
 	public static boolean isJsonString(String jsonStr) {
 		JsonParser parser = new JsonParser();
 		if(!parser.parse(jsonStr).isJsonObject()) {
@@ -80,6 +53,4 @@ public class JsonParserHelper {
 		}
 		return true;
 	}
-	
-	
 }

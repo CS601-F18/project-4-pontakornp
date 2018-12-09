@@ -3,13 +3,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.logging.Level;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -20,7 +17,6 @@ import cs601.project4.Config;
 import cs601.project4.HttpConnectionHelper;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
-import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.object.UserJsonConstant;
 import cs601.project4.object.UserServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
