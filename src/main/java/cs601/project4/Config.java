@@ -35,31 +35,6 @@ public class Config {
 		Charset cs = Charset.forName("ISO-8859-1");
 		Path path = Paths.get("config.json");
 		Config config = new Config();
-//		try(
-//			BufferedReader reader = Files.newBufferedReader(path, cs);
-//		) {
-//			String line;
-//			Gson gson = new Gson();
-//			while((line = reader.readLine()) != null) {
-//				try {
-//					config = gson.fromJson(line, Config.class); // parse variables from config.json file to config object
-//					this.frontendPort = config.frontendPort;
-//					this.eventPort = config.eventPort;
-//					this.userPort = config.userPort;
-//					this.dbUsername = config.dbUsername;
-//					this.dbPassword = config.dbPassword;
-//					this.hostname = config.hostname;
-//					this.db = config.db;
-//				} catch(JsonSyntaxException jse) {
-//					// skip
-//				}
-//			}
-//		}
-//		catch(IOException ioe) {
-//			System.out.println("Please try again with correct config file.");
-//			return false;
-//		}
-//		
 		try {
 			JsonReader jsonReader = new JsonReader(new FileReader("config.json"));
 			Gson gson = new Gson();

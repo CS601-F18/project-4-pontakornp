@@ -1,4 +1,4 @@
-package cs601.project4.database;
+package cs601.project4.object;
 
 public class Ticket {
 	private int ticketId;

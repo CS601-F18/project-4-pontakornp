@@ -1,4 +1,4 @@
-package cs601.project4.database;
+package cs601.project4;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import cs601.project4.Config;
-import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.object.Event;
+import cs601.project4.object.Ticket;
 
 /**
  * database manager class handles the database connection and all sql queries of users, events, and tickets tables;

@@ -6,8 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import cs601.project4.database.DatabaseManager;
-
 public class DB {
 	public static void main(String[] args) throws SQLException {
 		String username  = "root";

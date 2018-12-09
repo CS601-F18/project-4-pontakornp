@@ -2,19 +2,18 @@ package cs601.project4.system.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.logging.Level;
 
 import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import cs601.project4.JsonParserHelper;
@@ -38,10 +37,10 @@ public class UserServletTest {
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
 			String responseStr = getBodyResponse(con);
-			JSONObject jsonObj = new JSONObject(responseStr);
-			assertTrue(jsonObj.get("userid") instanceof Integer);
-			assertTrue(jsonObj.get("username") instanceof String);
-			assertTrue(jsonObj.get("tickets") instanceof JSONArray);
+			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
+			assertTrue(jsonObj.get("userid").getAsBigInteger() instanceof BigInteger);
+			assertTrue(jsonObj.get("username").getAsString() instanceof String);
+			assertTrue(jsonObj.get("tickets").getAsJsonArray() instanceof JsonArray);
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetUserBody connection error", 1);
 		}

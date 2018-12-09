@@ -8,10 +8,10 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import cs601.project4.DatabaseManager;
 import cs601.project4.TicketPurchaseApplicationLogger;
-import cs601.project4.database.DatabaseManager;
-import cs601.project4.database.Event;
-import cs601.project4.database.Ticket;
+import cs601.project4.object.Event;
+import cs601.project4.object.Ticket;
 
 public class SqlQueryTest {
 	private static DatabaseManager dbInstance;

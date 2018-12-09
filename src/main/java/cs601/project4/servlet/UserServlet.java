@@ -17,11 +17,11 @@ import org.json.JSONObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import cs601.project4.DatabaseManager;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
-import cs601.project4.database.DatabaseManager;
-import cs601.project4.database.Ticket;
-import cs601.project4.database.User;
+import cs601.project4.object.Ticket;
+import cs601.project4.object.User;
 
 
 public class UserServlet extends HttpServlet {
@@ -165,19 +165,19 @@ public class UserServlet extends HttpServlet {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request body is not json string", 1);
 				return null;
 			}
-			
-			if(reqObj.get("eventid") == null || 
-					reqObj.get("tickets") == null || 
-					!StringUtils.isNumeric(reqObj.get("eventid").getAsString()) ||
-					!StringUtils.isNumeric(reqObj.get("tickets").getAsString())) {
+			if(reqObj.get("eventid") == null || reqObj.get("tickets") == null) {
+				reqObj.get("eventid").getAsInt();
+				reqObj.get("tickets").getAsInt();
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be added - request body invalid", 1);
 				return null;
 			}
 			return reqObj;
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get eventid/tickets from request body", 1);
-			return null;
-		}
+		} catch (ClassCastException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get eventid/tickets from request body", 1);	
+		}// malformed
+		return null;
 	}
 	
 	/**

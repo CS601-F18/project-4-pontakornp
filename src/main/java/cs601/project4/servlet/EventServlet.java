@@ -1,7 +1,5 @@
 package cs601.project4.servlet;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,10 +17,11 @@ import org.json.JSONObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import cs601.project4.Config;
+import cs601.project4.DatabaseManager;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
-import cs601.project4.database.DatabaseManager;
-import cs601.project4.database.Event;
+import cs601.project4.object.Event;
 
 public class EventServlet extends HttpServlet{
 	/**
@@ -63,7 +62,8 @@ public class EventServlet extends HttpServlet{
 		if(pathParts.length == 2 && pathParts[1] == "create") {
 			
 		} else if(pathParts.length == 3 && pathParts[1] == "purchase" && StringUtils.isNumeric(pathParts[2])) {
-			
+			int eventId = Integer.parseInt(pathParts[2]);
+			purchaseTickets(request, response, eventId);
 		} else {
 			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
 		}
@@ -75,7 +75,7 @@ public class EventServlet extends HttpServlet{
 	 * @param request
 	 * @param response
 	 */
-	public void getEventList(HttpServletRequest request, HttpServletResponse response) {
+	private void getEventList(HttpServletRequest request, HttpServletResponse response) {
 		List<Event> events = DatabaseManager.getInstance().selectEvents();
 		JsonArray arrObj = new JsonArray();
 		if(events != null) {
@@ -99,7 +99,7 @@ public class EventServlet extends HttpServlet{
 	 * @param request
 	 * @param response
 	 */
-	public void getEventDetails(HttpServletRequest request, HttpServletResponse response, int eventId) {
+	private void getEventDetails(HttpServletRequest request, HttpServletResponse response, int eventId) {
 		Event event = DatabaseManager.getInstance().selectEvent(eventId);
 		if(event == null) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found", 1);
@@ -122,7 +122,7 @@ public class EventServlet extends HttpServlet{
 	 * @param request
 	 * @return Event object
 	 */
-	public Event createEventHelper(HttpServletRequest request) {
+	private Event createEventHelper(HttpServletRequest request) {
 		try {
 			String jsonStr = IOUtils.toString(request.getReader());
 			if(!JsonParserHelper.isJsonString(jsonStr)) {
@@ -142,16 +142,18 @@ public class EventServlet extends HttpServlet{
 	 * @param userId
 	 * @return
 	 */
-	public boolean doesUserExist(int userId) {
-		//ini config
+	private boolean doesUserExist(int userId) {
 		try {
-			String host = "http://localhost:8082";
+			Config config = new Config();
+			config.setVariables();
+			String host = config.getHostname() + ":" + config.getUserPort();
 			String urlString = host + "/" + userId;
 			URL url = new URL(urlString);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
 			if(responseCode != 200) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User not found", 1);
 				return false;
 			}
 			return true;
@@ -167,28 +169,27 @@ public class EventServlet extends HttpServlet{
 	 * @param request
 	 * @param response
 	 */
-	public void createEvent(HttpServletRequest request, HttpServletResponse response) {
+	private void createEvent(HttpServletRequest request, HttpServletResponse response) {
 		Event event = createEventHelper(request);
 		if(event == null || 
 				event.getEventName() == null ||
 				event.getUserId() <= 0 || 
 				event.getNumTickets() <= 0 ) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event unsuccessfully created - event details invalid", 1);
-			BaseServlet.sendBadRequestResponse(response, "User unsuccessfully created");
+			BaseServlet.sendBadRequestResponse(response, "Event unsuccessfully created");
 			return;
 		}
-		//create client to call User Service to check if user exists or not
-		
-		
-		
-		
+		if(!doesUserExist(event.getUserId())) {
+			BaseServlet.sendBadRequestResponse(response, "Event unsuccessfully created");
+			return;
+		}
 		int numTickets = event.getNumTickets();
 		event.setNumTicketAvail(numTickets);
 		event.setNumTicketPurchased(0);
 		int eventId = DatabaseManager.getInstance().insertEvent(event);
 		if(eventId == -1) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "User unsuccessfully created - user cannot be created", 1);
-			BaseServlet.sendBadRequestResponse(response, "User unsuccessfully created");
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event unsuccessfully created - user cannot be created", 1);
+			BaseServlet.sendBadRequestResponse(response, "Event unsuccessfully created");
 			return;
 		}
 		JSONObject eventObj = new JSONObject();
@@ -196,5 +197,109 @@ public class EventServlet extends HttpServlet{
 		String body = eventObj.toString();
 		BaseServlet.sendResponse(response, body);
 	}
+
+	/**
+	 * Helper method of purchase event tickets to handle validation of json request
+	 * @param request
+	 * @return Event object
+	 */
+	private JsonObject purchaseTicketsHelper(HttpServletRequest request) {
+		try {
+			String jsonStr = IOUtils.toString(request.getReader());
+			if(!JsonParserHelper.isJsonString(jsonStr)) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - request body is not json string", 1);
+				return null;
+			}
+			JsonObject reqObj = JsonParserHelper.parseJsonStringToJsonObject(jsonStr);
+			if(reqObj.get("eventid") == null || reqObj.get("tickets") == null) {
+				reqObj.get("userid").getAsInt();
+				reqObj.get("eventid").getAsInt();
+				reqObj.get("tickets").getAsInt();
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - request body invalid", 1);
+				return null;
+			}
+			return reqObj;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get event details to update from request body", 1);
+		} catch (ClassCastException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get event details to update from request body", 1);
+		}
+		return null;
+	}
+	
+	/**
+	 * add tickets by calling User service API to update
+	 * @param jsonObj
+	 * @return
+	 */
+	private boolean addTickets(JsonObject jsonObj) {
+		try {
+			Config config = new Config();
+			config.setVariables();
+			String host = config.getHostname() + ":" + config.getUserPort();
+			String urlString = host + "/" + jsonObj.get("userid").getAsInt() + "/tickets/add";//change this to use constant class
+			URL url = new URL(urlString);
+			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			con.setRequestMethod("GET");
+			int responseCode = con.getResponseCode();
+			if(responseCode != 200) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User not found", 1);
+				return false;
+			}
+			return true;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "User service connection error", 1);
+			return false;
+		}
+	}
+	
+	private synchronized void purchaseTickets(HttpServletRequest request, HttpServletResponse response, int eventId) {
+		//check if json from request body is valid
+		JsonObject reqObj = purchaseTicketsHelper(request);
+		if(reqObj == null) {
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
+			return;
+		}
+		//check if event id from request body match with the event id from the path
+		if(eventId != reqObj.get("eventid").getAsInt()) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - event ids mismatched", 1);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
+		}
+		//check if event exists
+		Event event = DatabaseManager.getInstance().selectEvent(eventId);
+		if(event == null) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - event not found", 1);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
+			return;
+		}
+		int numTicketToPurchase = reqObj.get("tickets").getAsInt();
+		int numTicketAvail = event.getNumTicketAvail();
+		int numTicketPurchased = event.getNumTicketPurchased();
+		if(numTicketToPurchase > numTicketAvail) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be purchased - not enough available number of tickets", 1);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
+			return;
+		}
+		event.setNumTicketAvail(numTicketAvail - numTicketToPurchase);
+		event.setNumTicketPurchased(numTicketPurchased + numTicketToPurchase);
+		//update number of tickets in events table
+		boolean areEventUpdated = DatabaseManager.getInstance().updateEvent(event);
+		if(!areEventUpdated) {
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be purchased - event not updated", 1);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
+			return;
+		}
+		//call User API to check if user exists
+		if(!doesUserExist(event.getUserId())) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - user not found", 1);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
+			return;
+		}
+		//verify if user exist
+		// if user exists, return 200
+		// if user does not exist, rollback the database and return 400
+	}
+	
+	
 	
 }
