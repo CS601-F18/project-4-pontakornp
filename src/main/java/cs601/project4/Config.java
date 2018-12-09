@@ -20,12 +20,13 @@ import com.google.gson.stream.JsonReader;
  * 
  */
 public class Config {
+	private String hostname;
 	private String frontendPort;
 	private String eventPort;
 	private String userPort;
 	private String dbUsername;
 	private String dbPassword;
-	private String hostname;
+	private String dbHostname;
 	private String db;
 
 	/**
@@ -39,12 +40,13 @@ public class Config {
 			JsonReader jsonReader = new JsonReader(new FileReader("config.json"));
 			Gson gson = new Gson();
 			config = gson.fromJson(jsonReader, Config.class);
+			this.hostname = config.hostname;
 			this.frontendPort = config.frontendPort;
 			this.eventPort = config.eventPort;
 			this.userPort = config.userPort;
 			this.dbUsername = config.dbUsername;
 			this.dbPassword = config.dbPassword;
-			this.hostname = config.hostname;
+			this.dbHostname = config.dbHostname;
 			this.db = config.db;
 		} catch(IOException ioe) {
 			System.out.println("Please try again with correct config file.");
@@ -53,6 +55,14 @@ public class Config {
 		return true;
 	}
 
+	public String getHostname() {
+		return hostname;
+	}
+
+
+	public void setHostname(String hostname) {
+		this.hostname = hostname;
+	}
 
 	public String getFrontendPort() {
 		return frontendPort;
@@ -104,13 +114,13 @@ public class Config {
 	}
 
 
-	public String getHostname() {
-		return hostname;
+	public String getDbHostname() {
+		return dbHostname;
 	}
 
 
-	public void setHostname(String hostname) {
-		this.hostname = hostname;
+	public void setDbHostname(String dbHostname) {
+		this.dbHostname = dbHostname;
 	}
 
 

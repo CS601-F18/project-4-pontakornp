@@ -88,12 +88,12 @@ public class UserServletTest {
 		}
 	}
 	
-	public String getBodyResponse(HttpURLConnection con) throws IOException {
+	private String getBodyResponse(HttpURLConnection con) throws IOException {
 		String bodyResponse = IOUtils.toString(con.getInputStream(), "UTF-8");
 		return bodyResponse;
 	}
 	
-	public HttpURLConnection getConnection(String path, JsonObject reqObj) throws IOException{
+	private HttpURLConnection getConnection(String path, JsonObject reqObj) throws IOException{
 		String urlString = host + path;
 		URL url = new URL(urlString);
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();

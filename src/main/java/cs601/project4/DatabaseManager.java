@@ -35,9 +35,9 @@ public class DatabaseManager {
 			System.err.println("Can't find driver");
 			System.exit(1);
 		}
-		String hostname = config.getHostname();
+		String dbHostname = config.getDbHostname();
 		String db = config.getDb();
-		String urlString = "jdbc:mysql://"+ hostname + "/" + db;
+		String urlString = "jdbc:mysql://"+ dbHostname + "/" + db;
 		//Must set time zone explicitly in newer versions of mySQL.
 		String timeZoneSettings = "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 		//https://stackoverflow.com/questions/21361781/how-to-connect-to-database-connection-in-java

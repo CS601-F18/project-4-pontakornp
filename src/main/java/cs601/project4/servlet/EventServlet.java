@@ -22,6 +22,7 @@ import cs601.project4.DatabaseManager;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.object.Event;
+import cs601.project4.object.UserServicePathConstant;
 
 public class EventServlet extends HttpServlet{
 	/**
@@ -146,8 +147,11 @@ public class EventServlet extends HttpServlet{
 		try {
 			Config config = new Config();
 			config.setVariables();
-			String host = config.getHostname() + ":" + config.getUserPort();
-			String urlString = host + "/" + userId;
+			String hostname = config.getHostname() + ":" + config.getUserPort();
+			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
+			String port = config.getUserPort();
+			path = String.format(path, userId);
+			String urlString = hostname + ":" + port + path;
 			URL url = new URL(urlString);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
@@ -236,9 +240,14 @@ public class EventServlet extends HttpServlet{
 		try {
 			Config config = new Config();
 			config.setVariables();
-			String host = config.getHostname() + ":" + config.getUserPort();
-			String urlString = host + "/" + jsonObj.get("userid").getAsInt() + "/tickets/add";//change this to use constant class
+			String hostname = config.getHostname() + ":" + config.getUserPort();
+			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			String port = config.getUserPort();
+			path = String.format(path, jsonObj.get("userid").getAsInt());
+			String urlString = hostname + ":" + port + path;
 			URL url = new URL(urlString);
+			
+			
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
 			int responseCode = con.getResponseCode();
@@ -276,7 +285,7 @@ public class EventServlet extends HttpServlet{
 		int numTicketAvail = event.getNumTicketAvail();
 		int numTicketPurchased = event.getNumTicketPurchased();
 		if(numTicketToPurchase > numTicketAvail) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be purchased - not enough available number of tickets", 1);
+			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be purchased - not enough available number of tickets", 0);
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
 		}
@@ -285,21 +294,31 @@ public class EventServlet extends HttpServlet{
 		//update number of tickets in events table
 		boolean areEventUpdated = DatabaseManager.getInstance().updateEvent(event);
 		if(!areEventUpdated) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets could not be purchased - event not updated", 1);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - event not updated", 1);
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
 		}
 		//call User API to check if user exists
 		if(!doesUserExist(event.getUserId())) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - user not found", 1);
+			//rollback the number of tickets updated in events table
+			event.setNumTicketAvail(numTicketAvail);
+			event.setNumTicketPurchased(numTicketPurchased);
+			boolean areEventUpdatedRollback = DatabaseManager.getInstance().updateEvent(event);
+			if(!areEventUpdatedRollback) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event updated do not rollback", 1);
+			}
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
 		}
-		//verify if user exist
-		// if user exists, return 200
-		// if user does not exist, rollback the database and return 400
+		//if add ticket fail, return 400
+		if(!addTickets(reqObj)) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be purchased - tickets not added", 1);
+			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
+			return;
+		}
+		//tickets added successfully, return 200
+		TicketPurchaseApplicationLogger.write(Level.INFO, "Event tickets purchased", 0);
+		BaseServlet.sendResponse(response, "Event tickets purchased");
 	}
-	
-	
-	
 }
