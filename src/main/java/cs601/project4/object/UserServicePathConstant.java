@@ -1,5 +1,12 @@
 package cs601.project4.object;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Cotains constant path of User Service API
+ */
 public class UserServicePathConstant {
 	public static final String POST_CREATE_USER_PATH = "/create";
 	public static final String GET_USER_DETAILS_PATH = "/%d";

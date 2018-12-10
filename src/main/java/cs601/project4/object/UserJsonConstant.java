@@ -1,5 +1,12 @@
 package cs601.project4.object;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Contains Json constant related to User Service
+ */
 public class UserJsonConstant {
 	public static final String USER_ID = "userid";
 	public static final String USERNAME = "username";

@@ -21,9 +21,15 @@ import cs601.project4.object.EventJsonConstant;
 import cs601.project4.object.FrontEndJsonConstant;
 import cs601.project4.object.FrontEndServicePathConstant;
 import cs601.project4.object.UserJsonConstant;
-import cs601.project4.object.UserServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Performs system test by calling Frontend Service API paths
+ */
 public class FronEndServiceTest {
 	private static String host;
 		

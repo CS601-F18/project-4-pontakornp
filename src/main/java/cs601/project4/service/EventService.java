@@ -10,6 +10,13 @@ import cs601.project4.DatabaseManager;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.servlet.EventServlet;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Main class to run Event Service
+ */
 public class EventService {
 	public static void main(String args[]) {
     	TicketPurchaseApplicationLogger.initialize(UserService.class.getName(), "EventServiceLog.txt");

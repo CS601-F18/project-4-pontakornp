@@ -1,5 +1,12 @@
 package cs601.project4.object;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Contains contant path of Frontend Service API
+ */
 public class FrontEndServicePathConstant {
 	public static final String GET_EVENT_LIST_PATH = "/events";
 	public static final String POST_CREATE_EVENT_PATH = "/events/create";

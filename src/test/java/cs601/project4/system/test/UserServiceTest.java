@@ -3,14 +3,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.util.logging.Level;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import cs601.project4.Config;
@@ -21,6 +19,13 @@ import cs601.project4.object.UserJsonConstant;
 import cs601.project4.object.UserServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Performs system test by calling User Service API paths
+ */
 public class UserServiceTest {
 	private static String host;
 	

@@ -24,10 +24,15 @@ import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.object.Event;
 import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.object.FrontEndJsonConstant;
-import cs601.project4.object.FrontEndServicePathConstant;
 import cs601.project4.object.User;
 import cs601.project4.object.UserServicePathConstant;
 
+/**
+ * FrontEndServlet class handles the API request from external user who want to get access
+ * to manage tickets either related to user or event
+ * @author pontakornp
+ *
+ */
 public class FrontEndServlet extends HttpServlet{
 	private Config config = new Config();
 	/**
@@ -83,6 +88,12 @@ public class FrontEndServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * doPost helper method to call either create event or create user methods or return 404 if path not found
+	 * @param request
+	 * @param response
+	 * @param pathParts
+	 */
 	private void doPostCreate(HttpServletRequest request, HttpServletResponse response, String[] pathParts) {
 		if(pathParts[1].equals("events")) {
 			createEvent(request, response);
@@ -93,6 +104,12 @@ public class FrontEndServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * doPost helper method to call purchase tickets method or return 404 if path not found
+	 * @param request
+	 * @param response
+	 * @param pathParts
+	 */
 	private void doPostPurchase(HttpServletRequest request, HttpServletResponse response, String[] pathParts) {
 		if(StringUtils.isNumeric(pathParts[2]) && StringUtils.isNumeric(pathParts[4])) {
 			int eventId = Integer.parseInt(pathParts[2]);
@@ -103,6 +120,12 @@ public class FrontEndServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * doPost helper method to call transfer tickets method or return 404 if path not found
+	 * @param request
+	 * @param response
+	 * @param pathParts
+	 */
 	private void doPostTransfer(HttpServletRequest request, HttpServletResponse response, String[] pathParts) {
 		if(StringUtils.isNumeric(pathParts[2])) {
 			int userId = Integer.parseInt(pathParts[2]);
@@ -112,6 +135,14 @@ public class FrontEndServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * GET /events
+	 * get all events in json array return from event service
+	 * return 200 response and json array if events exist
+	 * return 400 response otherwise
+	 * @param request
+	 * @param response
+	 */
 	private void getEventList(HttpServletRequest request, HttpServletResponse response) {
 		try {
 			String hostname = config.getHostname();
@@ -135,6 +166,11 @@ public class FrontEndServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * Helper method to call event service to get event details
+	 * @param eventId
+	 * @return json object
+	 */
 	private JsonObject getEventFromEventService(int eventId) {
 		try {
 			String hostname = config.getHostname();
@@ -160,6 +196,15 @@ public class FrontEndServlet extends HttpServlet{
 		return null;
 	}
 	
+	/**
+	 * GET /event/{eventid}
+	 * get event details in json object by calling event service
+	 * return 200 response and json object if there are event details
+	 * return 400 otherwise
+	 * @param request
+	 * @param response
+	 * @param eventId
+	 */
 	private void getEventDetails(HttpServletRequest request, HttpServletResponse response, int eventId) {
 		JsonObject jsonObj =  getEventFromEventService(eventId);
 		if(jsonObj == null) {
@@ -169,6 +214,13 @@ public class FrontEndServlet extends HttpServlet{
 		BaseServlet.sendResponse(response, jsonObj.toString());
 	}
 	
+	/**
+	 * Helper method for get user details to validate json object from request body
+	 * @param userObj
+	 * @param userId
+	 * @return json object
+	 * @throws IOException
+	 */
 	private JsonObject getUserDetailsHelper(JsonObject userObj, int userId) throws IOException {
 		JsonArray ticketArr = userObj.get(FrontEndJsonConstant.TICKETS).getAsJsonArray();
 		Map<Integer, JsonObject> eventDetails = new HashMap<Integer, JsonObject>();
@@ -193,6 +245,15 @@ public class FrontEndServlet extends HttpServlet{
 		return resObj;
 	}
 	
+	/**
+	 * GET /users/{userid}
+	 * get user details in json object by calling user service
+	 * return 200 response and user details if there are user details 
+	 * return 400 response otherwise
+	 * @param request
+	 * @param response
+	 * @param userId
+	 */
 	private void getUserDetails(HttpServletRequest request, HttpServletResponse response, int userId) {
 		try {
 			String hostname = config.getHostname();
@@ -246,6 +307,11 @@ public class FrontEndServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * Helper method for create event which call event service to get event id in json object
+	 * @param jsonStr
+	 * @return json object
+	 */
 	private JsonObject createEventByEventService(String jsonStr) {
 		try {
 			String hostname = config.getHostname();
@@ -269,6 +335,13 @@ public class FrontEndServlet extends HttpServlet{
 		}
 		return null;
 	}
+	
+	/**
+	 * POST /events/create
+	 * post method that receive event details to create event by calling event service
+	 * @param request
+	 * @param response
+	 */
 	private void createEvent(HttpServletRequest request, HttpServletResponse response) {
 		String jsonStr = createEventHelper(request);
 		if(jsonStr == null) {
@@ -283,6 +356,13 @@ public class FrontEndServlet extends HttpServlet{
 		BaseServlet.sendResponse(response, jsonObj.toString());
 	}
 	
+	/**
+	 * Helper method for purchase ticket that validate json object from body request
+	 * @param request
+	 * @param eventId
+	 * @param userId
+	 * @return
+	 */
 	private JsonObject purchaseTicketsHelper(HttpServletRequest request, int eventId, int userId) {
 		try {
 			String jsonStr = IOUtils.toString(request.getReader());
@@ -307,6 +387,13 @@ public class FrontEndServlet extends HttpServlet{
 		return null;
 	}
 	
+	/**
+	 * Helper method for purchase ticket that call event service to purchase ticket
+	 * @param jsonObj
+	 * @param eventId
+	 * @param userId
+	 * @return
+	 */
 	private boolean purchaseTicketByEventService(JsonObject jsonObj, int eventId, int userId) {
 		try {
 			String hostname = config.getHostname();
@@ -326,6 +413,16 @@ public class FrontEndServlet extends HttpServlet{
 		return false;
 	}
 	
+	/**
+	 * POST /events/{eventid}/purchase/{userid}
+	 * post method to purchase tickets by calling event service
+	 * return 200 response if event service return 200 response which means tickets are purchased
+	 * return 400 otherwise 
+	 * @param request
+	 * @param response
+	 * @param eventId
+	 * @param userId
+	 */
 	private void purchaseTickets(HttpServletRequest request, HttpServletResponse response, int eventId, int userId) {
 		JsonObject jsonObj = purchaseTicketsHelper(request, eventId, userId);
 		if(jsonObj == null) {
@@ -343,7 +440,7 @@ public class FrontEndServlet extends HttpServlet{
 	/**
 	 * Helper method for createUser - if the request body is valid and return User object
 	 * @param request
-	 * @return Json string or null
+	 * @return string
 	 */
 	private String createUserHelper(HttpServletRequest request) {
 		try {
@@ -363,6 +460,12 @@ public class FrontEndServlet extends HttpServlet{
 		}
 		return null;
 	}
+	
+	/**
+	 * Helper method for create user that calls user service
+	 * @param jsonStr
+	 * @return
+	 */
 	private JsonObject createUserbyUserService(String jsonStr) {
 		try {
 			String hostname = config.getHostname();
@@ -388,7 +491,10 @@ public class FrontEndServlet extends HttpServlet{
 	}
 	
 	/**
-	 * POST /create
+	 * POST /users/create
+	 * post method to create user by calling user service
+	 * return 200 response if user service confirms that user has been created and return user id as json object
+	 * return 400 otherwise
 	 * @param request
 	 * @param response
 	 */
@@ -434,6 +540,12 @@ public class FrontEndServlet extends HttpServlet{
 		return null;
 	}
 	
+	/**
+	 * Helper method for transfer tickets by calling user service
+	 * @param jsonObj
+	 * @param userId
+	 * @return true or false
+	 */
 	private boolean transferTicketsByUserService(JsonObject jsonObj, int userId) {
 		try {
 			String hostname = config.getHostname();
@@ -453,6 +565,15 @@ public class FrontEndServlet extends HttpServlet{
 		return false;
 	}
 	
+	/**
+	 * POST /user/{userid}/tickets/transfer
+	 * post method to transfer ticket by calling user service
+	 * return 200 response if tickets has been transferred by user service
+	 * return 400 response otherwise 
+	 * @param request
+	 * @param response
+	 * @param userId
+	 */
 	private void transferTickets(HttpServletRequest request, HttpServletResponse response, int userId) {
 		JsonObject jsonObj = transferTicketsHelper(request);
 		if(jsonObj == null) {

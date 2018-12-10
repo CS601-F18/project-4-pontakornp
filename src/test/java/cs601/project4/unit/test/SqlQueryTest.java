@@ -13,6 +13,13 @@ import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.object.Event;
 import cs601.project4.object.Ticket;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Performs unit test by calling methods that run SQL command on the database
+ */
 public class SqlQueryTest {
 	private static DatabaseManager dbInstance;
 	

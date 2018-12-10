@@ -2,9 +2,6 @@ package cs601.project4;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -13,8 +10,8 @@ import com.google.gson.stream.JsonReader;
  * 
  * @author pontakornp
  * 
- * Manages config file of chat and search applications
  * 
+ * Manages config file of tickets management API service
  */
 public class Config {
 	private String hostname;
@@ -30,8 +27,6 @@ public class Config {
 	 * Set variables from the config.json file and assign them to variables in this class.
 	 */
 	public boolean setVariables() {
-		Charset cs = Charset.forName("ISO-8859-1");
-		Path path = Paths.get("config.json");
 		Config config = new Config();
 		try {
 			JsonReader jsonReader = new JsonReader(new FileReader("config.json"));

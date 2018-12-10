@@ -25,6 +25,11 @@ import cs601.project4.object.Event;
 import cs601.project4.object.EventJsonConstant;
 import cs601.project4.object.UserServicePathConstant;
 
+/**
+ * EventServlet class handles the API request from internal users e.g. FrontEndService and UserService
+ * @author pontakornp
+ *
+ */
 public class EventServlet extends HttpServlet{
 	/**
 	 * do GET operation according to specified path
@@ -77,7 +82,7 @@ public class EventServlet extends HttpServlet{
 	
 	/**
 	 * GET /list
-	 * GET method to give the list of events available
+	 * GET method to get the list of events available
 	 * @param request
 	 * @param response
 	 */
@@ -124,7 +129,7 @@ public class EventServlet extends HttpServlet{
 	/**
 	 * Helper method of create event - create client to call User Service to check if user exists or not
 	 * @param userId
-	 * @return
+	 * @return true or false
 	 */
 	private boolean doesUserExist(int userId) {
 		try {
@@ -209,7 +214,7 @@ public class EventServlet extends HttpServlet{
 	/**
 	 * add tickets by calling User service API to update
 	 * @param jsonObj
-	 * @return
+	 * @return true or false
 	 */
 	private boolean addTickets(JsonObject reqObj) {
 		try {
@@ -264,6 +269,12 @@ public class EventServlet extends HttpServlet{
 		return null;
 	}
 	
+	/**
+	 * Helper method for purchase tickets by checking if there's enough ticket to be purchased
+	 * @param reqObj
+	 * @param event
+	 * @return
+	 */
 	private boolean updateEventObject(JsonObject reqObj, Event event) {
 		int numTicketToPurchase = reqObj.get(EventJsonConstant.TICKETS).getAsInt();
 		int numTicketAvail = event.getNumTicketAvail();
@@ -277,6 +288,11 @@ public class EventServlet extends HttpServlet{
 		return true;
 	}
 	
+	/**
+	 * Helper method for purchase ticket by updating number of tickets in the database
+	 * @param event
+	 * @return true or false
+	 */
 	private boolean updateEvent(Event event) {
 		boolean isUpdated = DatabaseManager.getInstance().updateEvent(event);
 		if(!isUpdated) {
@@ -286,6 +302,10 @@ public class EventServlet extends HttpServlet{
 		return true;
 	}
 	
+	/**
+	 * Helper method for purchase ticket to rollback what has been updated in the database to be in the previous state
+	 * @param event
+	 */
 	private void rollbackUpdatedEvent(Event event) {
 		boolean isRollback = DatabaseManager.getInstance().updateEvent(event);
 		if(!isRollback) {
@@ -295,6 +315,14 @@ public class EventServlet extends HttpServlet{
 		}
 	}
 	
+	/**
+	 * Helper method for purchase ticket to manage adding tickets, it will performs rollback if add ticket fails
+	 * @param reqObj
+	 * @param event
+	 * @param numTicketAvailBeforeUpdate
+	 * @param numTicketPurchasedBeforeUpdate
+	 * @return true or false
+	 */
 	private boolean manageAddTickets(JsonObject reqObj, Event event, int numTicketAvailBeforeUpdate, int numTicketPurchasedBeforeUpdate) {
 		//if add ticket fail, return 400
 		if(!addTickets(reqObj)) {
@@ -308,6 +336,15 @@ public class EventServlet extends HttpServlet{
 		return true;
 	}
 	
+	/**
+	 * Helper method for purchase ticket that calls update evnet object, update event and manage add tickets methods
+	 * return true if every methods perform successfully
+	 * return false otherwise
+	 * return false i
+	 * @param reqObj
+	 * @param event
+	 * @return true or false
+	 */
 	private boolean purchaseTicketsHelper(JsonObject reqObj, Event event) {
 		if(!updateEventObject(reqObj, event)) {
 			return false;
@@ -323,6 +360,23 @@ public class EventServlet extends HttpServlet{
 		return true;
 	}
 	
+	/**
+	 * POST /purchase/{eventid}
+	 * post method to purchase ticket by event id
+	 * return 200 response if it pass all the following conditions:
+	 * 1. json object from request body is valid
+	 * 2. event exists from eventid specified
+	 * 3. event has enough available ticket to purchase
+	 * 3. ticket has been added successfully by user service
+	 * return 400 response otherwise
+	 * 
+	 * note that rollback on event details that has been updated will be performed, 
+	 * if call user service API to add ticket is not successful
+	 * 
+	 * @param request
+	 * @param response
+	 * @param eventId
+	 */
 	private synchronized void purchaseTickets(HttpServletRequest request, HttpServletResponse response, int eventId) {
 		//check if json from request body is valid
 		JsonObject reqObj = purchaseTicketsHelper(request);

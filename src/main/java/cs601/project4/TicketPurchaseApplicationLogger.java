@@ -7,6 +7,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Logger class for this application
+ */
 public class TicketPurchaseApplicationLogger {
 	private static Logger logger;
 	private static FileHandler fileout;

@@ -10,6 +10,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import cs601.project4.TicketPurchaseApplicationLogger;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Base servlet class provides common method that each service can call
+ * i.e. send responses such as page not found, bad request, and custom responses
+ * it can also check if page is found or not
+ */
 public class BaseServlet extends HttpServlet {
 	/**
 	 * send response

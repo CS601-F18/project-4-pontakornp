@@ -1,5 +1,12 @@
 package cs601.project4.object;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Contains Json constant related to Fronend Service
+ */
 public class FrontEndJsonConstant {
 	public static final String EVENT_ID = "eventid";
 	public static final String EVENT_NAME = "eventname";

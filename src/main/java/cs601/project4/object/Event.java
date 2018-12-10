@@ -2,6 +2,13 @@ package cs601.project4.object;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Getter and setter class for event object
+ */
 public class Event {
 	@SerializedName("eventid")
 	private int eventId;

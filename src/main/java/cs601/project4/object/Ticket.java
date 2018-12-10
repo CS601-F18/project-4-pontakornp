@@ -1,5 +1,12 @@
 package cs601.project4.object;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Getter and setter class for ticket object
+ */
 public class Ticket {
 	private int ticketId;
 	private int eventId;

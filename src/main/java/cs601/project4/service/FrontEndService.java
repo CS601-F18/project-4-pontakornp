@@ -4,16 +4,19 @@ import java.util.logging.Level;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 
 import cs601.project4.Config;
 import cs601.project4.DatabaseManager;
 import cs601.project4.TicketPurchaseApplicationLogger;
-import cs601.project4.servlet.EventServlet;
 import cs601.project4.servlet.FrontEndServlet;
-import cs601.project4.servlet.SessionServlet;
-import cs601.project4.servlet.UserServlet;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Main class to run Frontend Service
+ */
 public class FrontEndService {
     public static void main(String args[]) {
     	TicketPurchaseApplicationLogger.initialize(FrontEndService.class.getName(), "FrontEndServiceLog.txt");

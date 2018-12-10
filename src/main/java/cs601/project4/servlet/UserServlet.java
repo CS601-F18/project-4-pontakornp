@@ -74,6 +74,9 @@ public class UserServlet extends HttpServlet {
 	
 	/**
 	 * GET /{userid}
+	 * get user details by querying from database
+	 * return 200 response if there's user details
+	 * return 400 otherwise
 	 * @param request
 	 * @param response
 	 * @param userid
@@ -130,6 +133,9 @@ public class UserServlet extends HttpServlet {
 	
 	/**
 	 * POST /create
+	 * post method to create user by creating it in the database if request is valid
+	 * return 200 response if create user is successful
+	 * return 400 response otherwise
 	 * @param request
 	 * @param response
 	 */
@@ -156,7 +162,7 @@ public class UserServlet extends HttpServlet {
 	 * Helper method for add ticket - if the request body is valid and return Json Object
 	 * @param request
 	 * @param response
-	 * @return JsonObject or null
+	 * @return JsonObject
 	 */
 	private JsonObject addTicketHelper(HttpServletRequest request) {
 		try {
@@ -183,6 +189,9 @@ public class UserServlet extends HttpServlet {
 	
 	/**
 	 * POST /{userid}/tickets/add
+	 * post method to add tickets in the database
+	 * return 200 response if tickets has been added
+	 * return 400 response otherwise
 	 * @param request
 	 * @param response
 	 * @param userid
@@ -250,6 +259,13 @@ public class UserServlet extends HttpServlet {
 		return null;
 	}
 	
+	/**
+	 * Helper method for transfer ticket by checking if there is enough tickets by user id of the sender
+	 * @param userId
+	 * @param eventId
+	 * @param numTickets
+	 * @return
+	 */
 	private boolean areTicketsEnough(int userId, int eventId, int numTickets) {
 		int userTickets = DatabaseManager.getInstance().countTickets(userId, eventId);
 		if(numTickets <= 0 || userTickets < numTickets) {
@@ -260,6 +276,9 @@ public class UserServlet extends HttpServlet {
 	
 	/**
 	 * POST /{userid}/tickets/transfer
+	 * post method to transfer tickets by updating database
+	 * return 200 if tickets has been transferred successfully
+	 * return 400 otherwise
 	 * @param request
 	 * @param response
 	 * @param userid

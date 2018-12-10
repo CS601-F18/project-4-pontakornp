@@ -10,6 +10,13 @@ import cs601.project4.DatabaseManager;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.servlet.UserServlet;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Main class to run User Service
+ */
 public class UserService {
 	public static void main(String args[]) {
     	TicketPurchaseApplicationLogger.initialize(UserService.class.getName(), "UserServiceLog.txt");

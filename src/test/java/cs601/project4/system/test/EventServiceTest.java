@@ -20,6 +20,13 @@ import cs601.project4.object.EventJsonConstant;
 import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Performs system test by calling Event Service API paths
+ */
 public class EventServiceTest {
 	private static String host;
 	

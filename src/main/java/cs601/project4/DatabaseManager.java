@@ -14,9 +14,11 @@ import cs601.project4.object.Event;
 import cs601.project4.object.Ticket;
 
 /**
- * database manager class handles the database connection and all sql queries of users, events, and tickets tables;
+ * 
  * @author pontakornp
  *
+ *
+ * Database manager class handles the database connection and all sql queries of users, events, and tickets tables;
  */
 public class DatabaseManager {
 	private static DatabaseManager INSTANCE;
@@ -62,19 +64,6 @@ public class DatabaseManager {
 			INSTANCE = new DatabaseManager();
 		}
 		return INSTANCE;
-	}
-	
-	public static Connection getConnection() {
-		return con;
-	}
-	
-	public static void closeConnection() {
-		try {
-			con.close();
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Successfully close db connection.", 0);
-		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Failed to close db conection", 1);
-		}
 	}
 	
 	/** 

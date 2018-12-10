@@ -9,6 +9,13 @@ import org.apache.commons.io.IOUtils;
 
 import com.google.gson.JsonObject;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ * Helper class to get a connection via http by get or post method
+ * it also has method to get body response from the connection
+ */
 public class HttpConnectionHelper {
 	public static HttpURLConnection getConnection(String host, String path) throws IOException{
 		String urlString = host + path;

@@ -8,6 +8,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
+/**
+ * 
+ * @author pontakornp
+ *
+ *
+ * Helper class to parse between json object, json string, or some object that has getter setter class
+ * it also has method to check if a string is a json string
+ */
 public class JsonParserHelper {
 	public static JsonObject parseReaderToJsonObject(BufferedReader reader) {
 		try {
