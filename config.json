@@ -1,0 +1,10 @@
+{
+	"hostname": "http://localhost",
+	"frontEndPort": 7070, 
+	"eventPort": 7071, 
+	"userPort": 7072, 
+	"dbUsername": "user07", 
+	"dbPassword": "user07", 
+	"dbHostname": "localhost:3307", 
+	"db": "user07"
+}
