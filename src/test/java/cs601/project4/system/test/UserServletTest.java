@@ -44,9 +44,9 @@ public class UserServletTest {
 			con.setRequestMethod("GET");
 			String responseStr = HttpConnectionHelper.getBodyResponse(con);
 			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
-			assertTrue(jsonObj.get("userid").getAsBigInteger() instanceof BigInteger);
-			assertTrue(jsonObj.get("username").getAsString() instanceof String);
-			assertTrue(jsonObj.get("tickets").getAsJsonArray() instanceof JsonArray);
+			assertEquals(1, jsonObj.get(UserJsonConstant.USER_ID).getAsInt());
+			assertEquals("hello", jsonObj.get(UserJsonConstant.USERNAME).getAsString());
+			assertTrue(jsonObj.get("tickets").getAsJsonArray().size() > 0);
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetUserBody connection error", 1);
 		}

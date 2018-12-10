@@ -6,6 +6,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import cs601.project4.Config;
+import cs601.project4.DatabaseManager;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.servlet.EventServlet;
 import cs601.project4.servlet.FrontEndServlet;
@@ -15,19 +17,17 @@ import cs601.project4.servlet.UserServlet;
 public class FrontEndService {
     public static void main(String args[]) {
     	TicketPurchaseApplicationLogger.initialize(FrontEndService.class.getName(), "frontEndServiceLog.txt");
-    	// Create a basic jetty server object that will listen on port 8080.
-        Server server = new Server(8080);
+    	DatabaseManager.getInstance();
+    	Config config = new Config();
+    	config.setVariables();
+    	int port = config.getFrontEndPort();
+    	// Create a basic jetty server object that will listen on port specified in config file.
+        Server server = new Server(port);
         // Create context handler and mount it to the server
         ServletContextHandler handler = new ServletContextHandler();
         server.setHandler(handler);
         // Pass in the class for the Servlet to instantiate an instance of that Servlet and mount it on a given context path
-        
-        // how to handle many paths using same class??????
-        
-//        handler.addServlet(new ServletHolder(SessionServlet.class), "/");
-//        handler.addServlet(SessionServlet.class, "/session");
-        handler.addServlet(FrontEndServlet.class, "/events/*");
-        handler.addServlet(FrontEndServlet.class, "/users/*");
+        handler.addServlet(FrontEndServlet.class, "/*");
         // Start the server
         try {
 			server.start();

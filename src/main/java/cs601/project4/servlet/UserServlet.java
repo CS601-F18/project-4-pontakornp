@@ -35,7 +35,7 @@ public class UserServlet extends HttpServlet {
 		String pathInfo = request.getPathInfo();
 		String[] pathParts = pathInfo.split("/");
 		if(pathParts.length == 2 && StringUtils.isNumeric(pathParts[1])) {
-			int userId = Integer.parseInt(pathInfo.substring(1));
+			int userId = Integer.parseInt(pathParts[1]);
 			getUserDetails(request, response, userId);
 		} else {
 			BaseServlet.sendPageNotFoundResponse(response, "Page not found");

@@ -43,7 +43,7 @@ public class EventServlet extends HttpServlet{
 			getEventList(request, response);
 		} else if(pathParts.length == 2 && StringUtils.isNumeric(pathParts[1])) {
 			TicketPurchaseApplicationLogger.write(Level.INFO, "Call get event details", 0);
-			int eventId = Integer.parseInt(pathInfo.substring(1));
+			int eventId = Integer.parseInt(pathParts[1]);
 			getEventDetails(request, response, eventId);
 		} else {
 			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
@@ -83,7 +83,7 @@ public class EventServlet extends HttpServlet{
 	 */
 	private void getEventList(HttpServletRequest request, HttpServletResponse response) {
 		List<Event> events = DatabaseManager.getInstance().selectEvents();
-		JsonArray arrObj = new JsonArray();
+		JsonArray jsonArr = new JsonArray();
 		if(events != null) {
 			for(Event event: events) {
 				JsonObject jsonObj = new JsonObject();
@@ -92,10 +92,10 @@ public class EventServlet extends HttpServlet{
 				jsonObj.addProperty(EventJsonConstant.USER_ID, event.getUserId());
 				jsonObj.addProperty(EventJsonConstant.AVAIL, event.getNumTicketAvail());
 				jsonObj.addProperty(EventJsonConstant.PURCHASED, event.getNumTicketPurchased());
-				arrObj.add(jsonObj);
+				jsonArr.add(jsonObj);
 			}
 		}
-		BaseServlet.sendResponse(response, arrObj.toString());
+		BaseServlet.sendResponse(response, jsonArr.toString());
 	}
 	
 	/**

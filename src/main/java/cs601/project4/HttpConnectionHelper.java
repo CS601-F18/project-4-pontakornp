@@ -17,12 +17,26 @@ public class HttpConnectionHelper {
 		return con;
 	}
 	
-	public static HttpURLConnection getConnection(String host, String path, JsonObject reqObj) throws IOException{
+	private static HttpURLConnection getPostConnectionHelper(String host, String path) throws IOException {
 		HttpURLConnection con = getConnection(host,path);
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
 		con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 		con.setRequestProperty("Accept", "application/json");
+		return con;
+	}
+	
+	public static HttpURLConnection getConnection(String host, String path, String jsonStr) throws IOException{
+		HttpURLConnection con = getPostConnectionHelper(host, path);
+		OutputStreamWriter w = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
+		w.write(jsonStr);
+		w.flush();
+		w.close();
+		return con;
+	}
+	
+	public static HttpURLConnection getConnection(String host, String path, JsonObject reqObj) throws IOException{
+		HttpURLConnection con = getPostConnectionHelper(host, path);
 		OutputStreamWriter w = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
 		w.write(reqObj.toString());
 		w.flush();

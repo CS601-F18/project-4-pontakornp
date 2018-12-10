@@ -1,15 +1,12 @@
 package cs601.project4;
 
-import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 
 /**
@@ -21,7 +18,7 @@ import com.google.gson.stream.JsonReader;
  */
 public class Config {
 	private String hostname;
-	private int frontendPort;
+	private int frontEndPort;
 	private int eventPort;
 	private int userPort;
 	private String dbUsername;
@@ -41,7 +38,7 @@ public class Config {
 			Gson gson = new Gson();
 			config = gson.fromJson(jsonReader, Config.class);
 			this.hostname = config.hostname;
-			this.frontendPort = config.frontendPort;
+			this.frontEndPort = config.frontEndPort;
 			this.eventPort = config.eventPort;
 			this.userPort = config.userPort;
 			this.dbUsername = config.dbUsername;
@@ -64,13 +61,13 @@ public class Config {
 		this.hostname = hostname;
 	}
 
-	public int getFrontendPort() {
-		return frontendPort;
+	public int getFrontEndPort() {
+		return frontEndPort;
 	}
 
 
-	public void setFrontendPort(int frontendPort) {
-		this.frontendPort = frontendPort;
+	public void setFrontEndPort(int frontEndPort) {
+		this.frontEndPort = frontEndPort;
 	}
 
 

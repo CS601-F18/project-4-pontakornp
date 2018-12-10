@@ -3,6 +3,7 @@ package cs601.project4;
 import java.io.BufferedReader;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -24,6 +25,15 @@ public class JsonParserHelper {
 		}
 		JsonObject jsonObj = parser.parse(jsonStr).getAsJsonObject();
 		return jsonObj;
+	}
+	
+	public static JsonArray parseJsonStringToJsonArray(String jsonStr) {
+		JsonParser parser = new JsonParser(); 
+		if(!parser.parse(jsonStr).isJsonArray()) {
+			return null;
+		}
+		JsonArray jsonArr = parser.parse(jsonStr).getAsJsonArray();
+		return jsonArr;
 	}
 	
 	public static <T> T parseJsonStringToObject(String jsonStr, Class<T> objClass) {
