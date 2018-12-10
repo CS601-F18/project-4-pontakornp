@@ -18,7 +18,6 @@ import cs601.project4.HttpConnectionHelper;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketManagementApplicationLogger;
 import cs601.project4.object.EventJsonConstant;
-import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.object.FrontEndJsonConstant;
 import cs601.project4.object.FrontEndServicePathConstant;
 import cs601.project4.object.UserJsonConstant;
@@ -172,6 +171,25 @@ public class FronEndServiceTest {
 	}
 	
 	@Test
+	public void testCreateEventWithSpaceValid() {
+		try {
+			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
+			int userId = 2;
+			String eventName = " test front end create event valid" + (int)(Math.random()*1000);
+			int numTickets = 4;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
+			reqObj.addProperty(EventJsonConstant.EVENT_NAME, eventName);
+			reqObj.addProperty(EventJsonConstant.NUM_TICKETS, numTickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(200, responseCode);
+		} catch (IOException e) {
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventValid connection error", 1);
+		}
+	}
+	
+	@Test
 	public void testCreateEventInvalid() {
 		try {
 			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
@@ -189,6 +207,26 @@ public class FronEndServiceTest {
 			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
 		}
 	}
+	
+	@Test
+	public void testCreateEventBlankInvalid() {
+		try {
+			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
+			int userId = 3;
+			String eventName = "";
+			int numTickets = 5;
+			JsonObject reqObj = new JsonObject();
+			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
+			reqObj.addProperty(EventJsonConstant.EVENT_NAME, eventName);
+			reqObj.addProperty(EventJsonConstant.NUM_TICKETS, numTickets);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
+			int responseCode = con.getResponseCode();
+			assertEquals(400, responseCode);
+		} catch (IOException e) {
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
+		}
+	}
+	
 	
 	@Test
 	public void testCreateEventJsonInvalid() {
@@ -213,10 +251,13 @@ public class FronEndServiceTest {
 	public void testPurchaseTicketsValid() {
 		try {
 			String path = FrontEndServicePathConstant.POST_PURCHASE_TICKETS_PATH;
-			int eventId = 1;
-			int userId = 5;
+//			int eventId = 1;
+//			int userId = 5;
+			int eventId = 5;
+			int userId = 3;
 			path = String.format(path, eventId, userId);
-			int tickets = 2;
+//			int tickets = 2;
+			int tickets = 1;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(FrontEndJsonConstant.TICKETS, tickets);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
