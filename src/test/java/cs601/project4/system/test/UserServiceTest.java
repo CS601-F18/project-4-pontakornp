@@ -21,12 +21,12 @@ import cs601.project4.object.UserJsonConstant;
 import cs601.project4.object.UserServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
 
-public class UserServletTest {
+public class UserServiceTest {
 	private static String host;
 	
 	@BeforeClass
 	public static void initialize() {
-		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "UserServletTest.txt");
+		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "UserServiceTest.txt");
 		Config config = new Config();
 		config.setVariables();
 		String hostname = config.getHostname();
@@ -46,7 +46,7 @@ public class UserServletTest {
 			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
 			assertEquals(1, jsonObj.get(UserJsonConstant.USER_ID).getAsInt());
 			assertEquals("hello", jsonObj.get(UserJsonConstant.USERNAME).getAsString());
-			assertTrue(jsonObj.get("tickets").getAsJsonArray().size() > 0);
+			assertTrue(jsonObj.get(UserJsonConstant.TICKETS).getAsJsonArray().size() > 0);
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetUserBody connection error", 1);
 		}
@@ -100,11 +100,11 @@ public class UserServletTest {
 			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testCreateUser" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("username", username);
+			reqObj.addProperty(UserJsonConstant.USERNAME, username);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			String responseStr = HttpConnectionHelper.getBodyResponse(con);
 			JsonObject resObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
-			assertTrue(resObj.get("userid") != null);
+			assertTrue(resObj.get(UserJsonConstant.USER_ID) != null);
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserBody connection error", 1);
 		}
@@ -116,7 +116,7 @@ public class UserServletTest {
 			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testCreateUser" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("username", username);
+			reqObj.addProperty(UserJsonConstant.USERNAME, username);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
@@ -131,7 +131,7 @@ public class UserServletTest {
 			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testCreteUser" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("username", username);
+			reqObj.addProperty(UserJsonConstant.USERNAME, username);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
@@ -143,14 +143,13 @@ public class UserServletTest {
 	@Test
 	public void testAddTicketsValid() {
 		try {
-			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			String path = UserServicePathConstant.POST_ADD_TICKETS_PATH;
 			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 2;
 			JsonObject reqObj = new JsonObject();
-			reqObj.addProperty("eventid", eventId);
-			reqObj.addProperty("tickets", numTickets);
-			System.out.println(reqObj.toString());
+			reqObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+			reqObj.addProperty(UserJsonConstant.TICKETS, numTickets);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
@@ -162,7 +161,7 @@ public class UserServletTest {
 	@Test
 	public void testAddTicketsUserIdInvalid() {
 		try {
-			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			String path = UserServicePathConstant.POST_ADD_TICKETS_PATH;
 			path = String.format(path, 1000);
 			int eventId = 1;
 			int numTickets = 2;
@@ -180,7 +179,7 @@ public class UserServletTest {
 	@Test
 	public void testAddTicketsEventIdInvalid() {
 		try {
-			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			String path = UserServicePathConstant.POST_ADD_TICKETS_PATH;
 			path = String.format(path, 1);
 			String eventId = "abc";
 			int numTickets = 2;
@@ -198,7 +197,7 @@ public class UserServletTest {
 	@Test
 	public void testAddTicketsNumTicketsInvalid() {
 		try {
-			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			String path = UserServicePathConstant.POST_ADD_TICKETS_PATH;
 			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 0;
@@ -216,7 +215,7 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsValid() {
 		try {
-			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			String path = UserServicePathConstant.POST_TRANSFER_TICKETS_PATH;
 			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 2;
@@ -236,7 +235,7 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsEventInvalid() {
 		try {
-			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			String path = UserServicePathConstant.POST_TRANSFER_TICKETS_PATH;
 			path = String.format(path, 1);
 			String eventId = "abc";
 			int numTickets = 2;
@@ -256,7 +255,7 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsNumTicketsZero() {
 		try {
-			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			String path = UserServicePathConstant.POST_TRANSFER_TICKETS_PATH;
 			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 0;
@@ -276,7 +275,7 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsNumTicketsInvalid() {
 		try {
-			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			String path = UserServicePathConstant.POST_TRANSFER_TICKETS_PATH;
 			path = String.format(path, 1);
 			int eventId = 1;
 			int numTickets = 100;
@@ -296,7 +295,7 @@ public class UserServletTest {
 	@Test
 	public void testTransferTicketsTargetUserInvalid() {
 		try {
-			String path = UserServicePathConstant.POST_TRANSFER_TICKET_PATH;
+			String path = UserServicePathConstant.POST_TRANSFER_TICKETS_PATH;
 			int eventId = 1;
 			int numTickets = 2;
 			int targetUserId = 1000;

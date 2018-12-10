@@ -24,6 +24,7 @@ public class UserService {
         server.setHandler(handler);
         // Pass in the class for the Servlet to instantiate an instance of that Servlet and mount it on a given context path
         handler.addServlet(UserServlet.class, "/*");
+        // Start the server
         try {
 			server.start();
 			server.join(); // wait for the thread to die

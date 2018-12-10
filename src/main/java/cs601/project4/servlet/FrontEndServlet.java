@@ -22,10 +22,11 @@ import cs601.project4.HttpConnectionHelper;
 import cs601.project4.JsonParserHelper;
 import cs601.project4.TicketPurchaseApplicationLogger;
 import cs601.project4.object.Event;
-import cs601.project4.object.EventJsonConstant;
+import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.object.FrontEndJsonConstant;
 import cs601.project4.object.FrontEndServicePathConstant;
-import cs601.project4.object.UserJsonConstant;
+import cs601.project4.object.User;
+import cs601.project4.object.UserServicePathConstant;
 
 public class FrontEndServlet extends HttpServlet{
 	private Config config = new Config();
@@ -44,16 +45,13 @@ public class FrontEndServlet extends HttpServlet{
 		String pathInfo = request.getPathInfo();
 		String[] pathParts = pathInfo.split("/");
 		if(pathParts.length == 2 && pathParts[1].equals("events")) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Call get event list", 0);
-//			getEventList(request, response);
+			getEventList(request, response);
 		} else if(pathParts.length == 3 && pathParts[1].equals("events") && StringUtils.isNumeric(pathParts[2])) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Call get event details", 0);
 			int eventId = Integer.parseInt(pathParts[2]);
-//			getEventDetails(request, response, eventId);
+			getEventDetails(request, response, eventId);
 		} else if(pathParts.length == 3 && pathParts[1].equals("users") && StringUtils.isNumeric(pathParts[2])) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Call get user details", 0);
 			int userId = Integer.parseInt(pathParts[2]);
-			//getUserDetails
+			getUserDetails(request, response, userId);
 		} else {
 			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
 		}
@@ -63,7 +61,8 @@ public class FrontEndServlet extends HttpServlet{
 	 * do POST operation according to specified path
 	 * POST /events/create
 	 * POST /events/{eventid}/purchase/{userid}
-	 * POST /user/{userid}/tickets/transfer
+	 * POST /users/create
+	 * POST /users/{userid}/tickets/transfer
 	 */
 	public void doPost(HttpServletRequest request, HttpServletResponse response) {
 		config.setVariables();
@@ -73,26 +72,41 @@ public class FrontEndServlet extends HttpServlet{
 		response.setContentType("application/json; charset=utf-8");
 		String pathInfo = request.getPathInfo().trim();
 		String[] pathParts = pathInfo.split("/");
-		if(pathParts.length == 3 && pathParts[1].equals("events") && pathParts[2].equals("create")) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Call create event", 0);
-//			createEvent(request, response);
+		if(pathParts.length == 3 && pathParts[2].equals("create")) {
+			doPostCreate(request, response, pathParts);
 		} else if(pathParts.length == 5 && pathParts[1].equals("events") && pathParts[3].equals("purchase")) {
-			if(StringUtils.isNumeric(pathParts[2]) && StringUtils.isNumeric(pathParts[4])) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "Call purchase tickets", 0);
-				int eventId = Integer.parseInt(pathParts[2]);
-				int userId = Integer.parseInt(pathParts[4]);
-				//purchaseTickets
-			} else {
-				BaseServlet.sendPageNotFoundResponse(response, "Page not found");
-			}
-		}else if(pathParts.length == 5 && pathParts[1].equals("user") && pathParts[3].equals("tickets") && pathParts[4].equals("transfer")) {
-			if(StringUtils.isNumeric(pathParts[2])) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "Call transfer tickets", 0);
-				int userId = Integer.parseInt(pathParts[2]);
-				//transferTickets
-			} else {
-				BaseServlet.sendPageNotFoundResponse(response, "Page not found");
-			}
+			doPostPurchase(request, response, pathParts);
+		}else if(pathParts.length == 5 && pathParts[1].equals("users") && pathParts[3].equals("tickets") && pathParts[4].equals("transfer")) {
+			doPostTransfer(request, response, pathParts);
+		} else {
+			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
+		}
+	}
+	
+	private void doPostCreate(HttpServletRequest request, HttpServletResponse response, String[] pathParts) {
+		if(pathParts[1].equals("events")) {
+			createEvent(request, response);
+		} else if(pathParts[1].equals("users")) {
+			createUser(request, response);
+		} else {
+			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
+		}
+	}
+	
+	private void doPostPurchase(HttpServletRequest request, HttpServletResponse response, String[] pathParts) {
+		if(StringUtils.isNumeric(pathParts[2]) && StringUtils.isNumeric(pathParts[4])) {
+			int eventId = Integer.parseInt(pathParts[2]);
+			int userId = Integer.parseInt(pathParts[4]);
+			purchaseTickets(request, response, eventId, userId);
+		} else {
+			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
+		}
+	}
+	
+	private void doPostTransfer(HttpServletRequest request, HttpServletResponse response, String[] pathParts) {
+		if(StringUtils.isNumeric(pathParts[2])) {
+			int userId = Integer.parseInt(pathParts[2]);
+			transferTickets(request, response, userId);
 		} else {
 			BaseServlet.sendPageNotFoundResponse(response, "Page not found");
 		}
@@ -102,7 +116,7 @@ public class FrontEndServlet extends HttpServlet{
 		try {
 			String hostname = config.getHostname();
 			int port = config.getEventPort();
-			String path = FrontEndServicePathConstant.GET_EVENT_LIST_PATH;
+			String path = EventServicePathConstant.GET_EVENT_LIST_PATH;
 			String host = hostname + ":" + port;
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
 			if(con.getResponseCode() != 200) {
@@ -121,37 +135,38 @@ public class FrontEndServlet extends HttpServlet{
 		}
 	}
 	
-	private JsonObject getEventFromEventService(int eventId) throws IOException {
-		String hostname = config.getHostname();
-		int port = config.getEventPort();
-		String path = FrontEndServicePathConstant.GET_EVENT_DETAILS_PATH;
-		path = String.format(path, eventId);
-		String host = hostname + ":" + port;
-		HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
-		if(con.getResponseCode() != 200) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found - event service return error " + con.getResponseCode(), 1);
-			return null;
+	private JsonObject getEventFromEventService(int eventId) {
+		try {
+			String hostname = config.getHostname();
+			int port = config.getEventPort();
+			String path = EventServicePathConstant.GET_EVENT_DETAILS_PATH;
+			path = String.format(path, eventId);
+			String host = hostname + ":" + port;
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
+			if(con.getResponseCode() != 200) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found - event service return error " + con.getResponseCode(), 1);
+				return null;
+			}
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
+			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
+			if(jsonObj == null || jsonObj.size() == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found - nothing pass from event service", 1);
+				return null;
+			}
+			return jsonObj;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event service connection error", 1);
 		}
-		String responseStr = HttpConnectionHelper.getBodyResponse(con);
-		JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
-		if(jsonObj == null || jsonObj.size() == 0) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found - nothing pass from event service", 1);
-			return null;
-		}
-		return jsonObj;
+		return null;
 	}
 	
 	private void getEventDetails(HttpServletRequest request, HttpServletResponse response, int eventId) {
-		try {
-			JsonObject jsonObj =  getEventFromEventService(eventId);
-			if(jsonObj == null) {
-				BaseServlet.sendBadRequestResponse(response, "Event not found");
-				return;
-			}
-			BaseServlet.sendResponse(response, jsonObj.toString());
-		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "User service connection error", 1);
+		JsonObject jsonObj =  getEventFromEventService(eventId);
+		if(jsonObj == null) {
+			BaseServlet.sendBadRequestResponse(response, "Event not found");
+			return;
 		}
+		BaseServlet.sendResponse(response, jsonObj.toString());
 	}
 	
 	private JsonObject getUserDetailsHelper(JsonObject userObj, int userId) throws IOException {
@@ -182,7 +197,7 @@ public class FrontEndServlet extends HttpServlet{
 		try {
 			String hostname = config.getHostname();
 			int port = config.getUserPort();
-			String path = FrontEndServicePathConstant.GET_USER_DETAILS_PATH;
+			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
 			path = String.format(path, userId);
 			String host = hostname + ":" + port;
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
@@ -235,7 +250,7 @@ public class FrontEndServlet extends HttpServlet{
 		try {
 			String hostname = config.getHostname();
 			int port = config.getEventPort();
-			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
+			String path = EventServicePathConstant.POST_CREATE_EVENT_PATH;
 			String host = hostname + ":" + port;
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, jsonStr);
 			if(con.getResponseCode() != 200) {
@@ -292,12 +307,12 @@ public class FrontEndServlet extends HttpServlet{
 		return null;
 	}
 	
-	private boolean purchaseTicketByEventService(JsonObject jsonObj, int eventId) {
+	private boolean purchaseTicketByEventService(JsonObject jsonObj, int eventId, int userId) {
 		try {
 			String hostname = config.getHostname();
 			int port = config.getEventPort();
-			String path = FrontEndServicePathConstant.POST_PURCHASE_TICKETS_PATH;
-			path = String.format(path, eventId);
+			String path = EventServicePathConstant.POST_PURCHASE_TICKETS_PATH;
+			path = String.format(path, eventId, userId);
 			String host = hostname + ":" + port;
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, jsonObj);
 			if(con.getResponseCode() != 200) {
@@ -317,12 +332,78 @@ public class FrontEndServlet extends HttpServlet{
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
 		}
-		boolean areTicketsPurchased = purchaseTicketByEventService(jsonObj, eventId);
+		boolean areTicketsPurchased = purchaseTicketByEventService(jsonObj, eventId, userId);
 		if(!areTicketsPurchased) {
 			BaseServlet.sendBadRequestResponse(response, "Tickets could not be purchased");
 			return;
 		}
 		BaseServlet.sendResponse(response, "Tickets purchased");
+	}
+	
+	/**
+	 * Helper method for createUser - if the request body is valid and return User object
+	 * @param request
+	 * @return Json string or null
+	 */
+	private String createUserHelper(HttpServletRequest request) {
+		try {
+			String jsonStr = IOUtils.toString(request.getReader());
+			if(!JsonParserHelper.isJsonString(jsonStr)) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User could not be created - request body is not json string", 1);
+				return null;
+			}
+			User user = JsonParserHelper.parseJsonStringToObject(jsonStr, User.class);
+			if(user == null || user.getUsername() == null || !StringUtils.isAlphanumeric(user.getUsername())) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User could not be created - username is null or non-alphanumeric", 1);
+				return null;
+			}
+			return jsonStr;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get username from request body", 1);
+		}
+		return null;
+	}
+	private JsonObject createUserbyUserService(String jsonStr) {
+		try {
+			String hostname = config.getHostname();
+			int port = config.getUserPort();
+			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
+			String host = hostname + ":" + port;
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, jsonStr);
+			if(con.getResponseCode() != 200) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User could not be created - user service return error", 1);
+				return null;
+			}
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
+			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
+			if(jsonObj == null || jsonObj.size() == 0) {
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "User could not be created - empty json response", 1);
+				return null;
+			}
+			return jsonObj;
+		} catch (IOException e) {
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "User could not be created - user service connection error", 1);
+		}
+		return null;
+	}
+	
+	/**
+	 * POST /create
+	 * @param request
+	 * @param response
+	 */
+	private void createUser(HttpServletRequest request, HttpServletResponse response) {
+		String jsonStr = createUserHelper(request);
+		if(jsonStr == null) {
+			BaseServlet.sendBadRequestResponse(response, "User could not be created");
+			return;
+		}
+		JsonObject jsonObj = createUserbyUserService(jsonStr);
+		if(jsonObj == null) {
+			BaseServlet.sendBadRequestResponse(response, "User could not be created");
+			return;
+		}
+		BaseServlet.sendResponse(response, jsonObj.toString());
 	}
 	
 	/**
@@ -335,19 +416,15 @@ public class FrontEndServlet extends HttpServlet{
 		try {
 			String jsonStr = IOUtils.toString(request.getReader());
 			JsonObject reqObj = JsonParserHelper.parseJsonStringToJsonObject(jsonStr);
-			if(reqObj == null) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - request body is not json string", 1);
-				return null;
-			}
-			if(reqObj.get(UserJsonConstant.EVENT_ID) == null || 
-					reqObj.get(UserJsonConstant.TICKETS) == null || 
-					reqObj.get(UserJsonConstant.TARGET_USER) == null) {
+			if(reqObj == null || reqObj.get(FrontEndJsonConstant.EVENT_ID) == null || 
+					reqObj.get(FrontEndJsonConstant.TICKETS) == null || 
+					reqObj.get(FrontEndJsonConstant.TARGET_USER) == null) {
 				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - request body invalid", 1);
 				return null;
 			}
-			reqObj.get(UserJsonConstant.EVENT_ID).getAsInt();
-			reqObj.get(UserJsonConstant.TICKETS).getAsInt();
-			reqObj.get(UserJsonConstant.TARGET_USER).getAsInt();
+			reqObj.get(FrontEndJsonConstant.EVENT_ID).getAsInt();
+			reqObj.get(FrontEndJsonConstant.TICKETS).getAsInt();
+			reqObj.get(FrontEndJsonConstant.TARGET_USER).getAsInt();
 			return reqObj;
 		} catch (IOException e) {
 			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot get transfer ticket details from request body", 1);
@@ -361,17 +438,17 @@ public class FrontEndServlet extends HttpServlet{
 		try {
 			String hostname = config.getHostname();
 			int port = config.getUserPort();
-			String path = FrontEndServicePathConstant.POST_TRANSFER_TICKETS_PATH;
+			String path = UserServicePathConstant.POST_TRANSFER_TICKETS_PATH;
 			path = String.format(path, userId);
 			String host = hostname + ":" + port;
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, jsonObj);
 			if(con.getResponseCode() != 200) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event unsuccessfully created - event service return error", 1);
+				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - user service return error", 1);
 				return false;
 			}
 			return true;
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Event unsuccessfully created - event service connection error", 1);
+			TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets could not be transferred - user service connection error", 1);
 		}
 		return false;
 	}

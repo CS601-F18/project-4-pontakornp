@@ -218,7 +218,7 @@ public class EventServlet extends HttpServlet{
 			String hostname = config.getHostname();
 			int port = config.getUserPort();
 			String host = hostname + ":" + port;
-			String path = UserServicePathConstant.POST_ADD_TICKET_PATH;
+			String path = UserServicePathConstant.POST_ADD_TICKETS_PATH;
 			path = String.format(path, reqObj.get(EventJsonConstant.USER_ID).getAsInt());
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();

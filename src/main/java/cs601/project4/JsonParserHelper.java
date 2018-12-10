@@ -10,30 +10,42 @@ import com.google.gson.JsonSyntaxException;
 
 public class JsonParserHelper {
 	public static JsonObject parseReaderToJsonObject(BufferedReader reader) {
-		JsonParser parser = new JsonParser();
-		if(!parser.parse(reader).isJsonObject()) {
+		try {
+			JsonParser parser = new JsonParser();
+			if(!parser.parse(reader).isJsonObject()) {
+				return null;
+			}
+			JsonObject jsonObj = parser.parse(reader).getAsJsonObject();
+			return jsonObj;
+		} catch (JsonSyntaxException e) {
 			return null;
 		}
-		JsonObject jsonObj = parser.parse(reader).getAsJsonObject();
-		return jsonObj;
 	}
 	
 	public static JsonObject parseJsonStringToJsonObject(String jsonStr) {
-		JsonParser parser = new JsonParser(); 
-		if(!parser.parse(jsonStr).isJsonObject()) {
+		try {
+			JsonParser parser = new JsonParser(); 
+			if(!parser.parse(jsonStr).isJsonObject()) {
+				return null;
+			}
+			JsonObject jsonObj = parser.parse(jsonStr).getAsJsonObject();
+			return jsonObj;
+		} catch (JsonSyntaxException e) {
 			return null;
 		}
-		JsonObject jsonObj = parser.parse(jsonStr).getAsJsonObject();
-		return jsonObj;
 	}
 	
 	public static JsonArray parseJsonStringToJsonArray(String jsonStr) {
-		JsonParser parser = new JsonParser(); 
-		if(!parser.parse(jsonStr).isJsonArray()) {
+		try {
+			JsonParser parser = new JsonParser(); 
+			if(!parser.parse(jsonStr).isJsonArray()) {
+				return null;
+			}
+			JsonArray jsonArr = parser.parse(jsonStr).getAsJsonArray();
+			return jsonArr;
+		} catch (JsonSyntaxException e) {
 			return null;
 		}
-		JsonArray jsonArr = parser.parse(jsonStr).getAsJsonArray();
-		return jsonArr;
 	}
 	
 	public static <T> T parseJsonStringToObject(String jsonStr, Class<T> objClass) {
@@ -49,13 +61,7 @@ public class JsonParserHelper {
 			return null;
 		}
 	}
-	
-	public static <T> String parseObjectToJsonString(T object) {
-		Gson gson = new Gson();
-		String jsonStr = gson.toJson(object);
-		return jsonStr;
-	}
-	
+
 	public static boolean isJsonString(String jsonStr) {
 		JsonParser parser = new JsonParser();
 		if(!parser.parse(jsonStr).isJsonObject()) {

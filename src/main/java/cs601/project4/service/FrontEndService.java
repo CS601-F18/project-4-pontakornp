@@ -16,7 +16,7 @@ import cs601.project4.servlet.UserServlet;
 
 public class FrontEndService {
     public static void main(String args[]) {
-    	TicketPurchaseApplicationLogger.initialize(FrontEndService.class.getName(), "frontEndServiceLog.txt");
+    	TicketPurchaseApplicationLogger.initialize(FrontEndService.class.getName(), "FrontEndServiceLog.txt");
     	DatabaseManager.getInstance();
     	Config config = new Config();
     	config.setVariables();

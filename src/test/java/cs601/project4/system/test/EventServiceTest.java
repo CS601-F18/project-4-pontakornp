@@ -20,12 +20,12 @@ import cs601.project4.object.EventJsonConstant;
 import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
 
-public class EventServletTest {
+public class EventServiceTest {
 	private static String host;
 	
 	@BeforeClass
 	public static void initialize() {
-		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "EventServletTest.txt");
+		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "EventServiceTest.txt");
 		Config config = new Config();
 		config.setVariables();
 		String hostname = config.getHostname();
