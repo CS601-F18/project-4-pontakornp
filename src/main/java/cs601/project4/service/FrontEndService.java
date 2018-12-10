@@ -7,7 +7,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import cs601.project4.Config;
 import cs601.project4.DatabaseManager;
-import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.TicketManagementApplicationLogger;
 import cs601.project4.servlet.FrontEndServlet;
 
 /**
@@ -19,7 +19,7 @@ import cs601.project4.servlet.FrontEndServlet;
  */
 public class FrontEndService {
     public static void main(String args[]) {
-    	TicketPurchaseApplicationLogger.initialize(FrontEndService.class.getName(), "FrontEndServiceLog.txt");
+    	TicketManagementApplicationLogger.initialize(FrontEndService.class.getName(), "FrontEndServiceLog.txt");
     	DatabaseManager.getInstance();
     	Config config = new Config();
     	config.setVariables();
@@ -36,7 +36,7 @@ public class FrontEndService {
 			server.start();
 			server.join(); // wait for the thread to die
 		} catch (Exception e) {
-			TicketPurchaseApplicationLogger.write(Level.INFO, "There's error from the server", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "There's error from the server", 0);
 		}
     }
 }

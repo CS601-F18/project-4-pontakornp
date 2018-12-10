@@ -10,12 +10,13 @@ import java.util.logging.Level;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import cs601.project4.Config;
 import cs601.project4.HttpConnectionHelper;
 import cs601.project4.JsonParserHelper;
-import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.TicketManagementApplicationLogger;
 import cs601.project4.object.EventJsonConstant;
 import cs601.project4.object.EventServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
@@ -32,10 +33,10 @@ public class EventServiceTest {
 	
 	@BeforeClass
 	public static void initialize() {
-		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "EventServiceTest.txt");
+		TicketManagementApplicationLogger.initialize(SqlQueryTest.class.getName(), "EventServiceTest.txt");
 		Config config = new Config();
 		config.setVariables();
-		String hostname = config.getHostname();
+		String hostname = config.getEventHostname();
 		int port = config.getEventPort();
 		host = hostname + ":" + port;
 	}
@@ -55,7 +56,7 @@ public class EventServiceTest {
 			assertTrue(jsonObj.get(EventJsonConstant.AVAIL).getAsInt() <= 50);
 			assertTrue(jsonObj.get(EventJsonConstant.PURCHASED).getAsInt() >= 0);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetEventDetialsResponseBody connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetEventDetialsResponseBody connection error", 1);
 		}
 	}
 	
@@ -69,7 +70,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetEventDetailsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetEventDetailsValid connection error", 1);
 		}
 	}
 	
@@ -83,7 +84,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetEventDetailsNotExist connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetEventDetailsNotExist connection error", 1);
 		}
 	}
 	
@@ -97,7 +98,21 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(404, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetPathInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetPathInvalid connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testGetEventListBodyResponse() {
+		try {
+			String path = EventServicePathConstant.GET_EVENT_LIST_PATH;
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
+			con.setRequestMethod("GET");
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
+			JsonArray resArr = JsonParserHelper.parseJsonStringToJsonArray(responseStr);
+			assertTrue(resArr.size() > 0);
+		} catch (IOException e) {
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetEventListValid connection error", 1);
 		}
 	}
 	
@@ -110,7 +125,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetEventListValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetEventListValid connection error", 1);
 		}
 	}
 	
@@ -130,7 +145,7 @@ public class EventServiceTest {
 			JsonObject resObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
 			assertTrue(resObj.get(EventJsonConstant.EVENT_ID) != null);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateEventResponseBody connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventResponseBody connection error", 1);
 		}
 	}
 	
@@ -149,7 +164,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateEventValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventValid connection error", 1);
 		}
 	}
 	
@@ -168,7 +183,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
 		}
 	}
 	
@@ -187,7 +202,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
 		}
 	}
 
@@ -207,7 +222,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
 		}
 	}
 	
@@ -227,7 +242,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
 		}
 	}
 	
@@ -248,7 +263,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
 		}
 	}
 	
@@ -268,7 +283,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
 		}
 	}
 	
@@ -283,7 +298,7 @@ public class EventServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testPurchaseTicketsValid connection error", 1);
 		}
 	}
 }

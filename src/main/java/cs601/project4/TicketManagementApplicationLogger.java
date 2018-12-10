@@ -14,7 +14,7 @@ import java.util.logging.SimpleFormatter;
  *
  * Logger class for this application
  */
-public class TicketPurchaseApplicationLogger {
+public class TicketManagementApplicationLogger {
 	private static Logger logger;
 	private static FileHandler fileout;
 	public static void initialize(String logName, String logFile)	{

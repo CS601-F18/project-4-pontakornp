@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.TicketManagementApplicationLogger;
 
 /**
  * 
@@ -31,7 +31,7 @@ public class BaseServlet extends HttpServlet {
 			out = response.getWriter();
 			out.write(body);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "Cannot write to client", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "Cannot write to client", 1);
 		}
 	}
 	

@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
 import cs601.project4.Config;
 import cs601.project4.HttpConnectionHelper;
 import cs601.project4.JsonParserHelper;
-import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.TicketManagementApplicationLogger;
 import cs601.project4.object.UserJsonConstant;
 import cs601.project4.object.UserServicePathConstant;
 import cs601.project4.unit.test.SqlQueryTest;
@@ -31,13 +31,12 @@ public class UserServiceTest {
 	
 	@BeforeClass
 	public static void initialize() {
-		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "UserServiceTest.txt");
+		TicketManagementApplicationLogger.initialize(SqlQueryTest.class.getName(), "UserServiceTest.txt");
 		Config config = new Config();
 		config.setVariables();
-		String hostname = config.getHostname();
+		String hostname = config.getUserHostname();
 		int port = config.getUserPort();
 		host = hostname + ":" + port;
-		
 	}
 	
 	@Test
@@ -53,7 +52,7 @@ public class UserServiceTest {
 			assertEquals("hello", jsonObj.get(UserJsonConstant.USERNAME).getAsString());
 			assertTrue(jsonObj.get(UserJsonConstant.TICKETS).getAsJsonArray().size() > 0);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetUserBody connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetUserBody connection error", 1);
 		}
 	}
 	
@@ -67,7 +66,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetUserValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetUserValid connection error", 1);
 		}
 	}
 	
@@ -81,7 +80,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetUserNotExist connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetUserNotExist connection error", 1);
 		}
 	}
 	
@@ -95,7 +94,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(404, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testGetPathInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetPathInvalid connection error", 1);
 		}
 	}
 
@@ -111,7 +110,7 @@ public class UserServiceTest {
 			JsonObject resObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
 			assertTrue(resObj.get(UserJsonConstant.USER_ID) != null);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserBody connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateUserBody connection error", 1);
 		}
 	}
 	
@@ -126,7 +125,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateUserValid connection error", 1);
 		}
 	}
 	
@@ -141,7 +140,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testCreateUserInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateUserInvalid connection error", 1);
 		}
 	}
 	
@@ -159,7 +158,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
 		}
 	}
 	
@@ -177,7 +176,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
 		}
 	}
 	
@@ -195,7 +194,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
 		}
 	}
 	
@@ -213,7 +212,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testAddTicketsValid connection error", 1);
 		}
 	}
 	
@@ -233,7 +232,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsValid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testTransferTicketsValid connection error", 1);
 		}
 	}
 
@@ -253,7 +252,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsEventInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testTransferTicketsEventInvalid connection error", 1);
 		}
 	}
 	
@@ -273,7 +272,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsNumTicketsInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testTransferTicketsNumTicketsInvalid connection error", 1);
 		}
 	}
 	
@@ -293,7 +292,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsNumTicketsInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testTransferTicketsNumTicketsInvalid connection error", 1);
 		}
 	}
 	
@@ -312,7 +311,7 @@ public class UserServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "testTransferTicketsTargetUserInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testTransferTicketsTargetUserInvalid connection error", 1);
 		}
 	}
 }

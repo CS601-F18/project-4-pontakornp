@@ -9,7 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import cs601.project4.DatabaseManager;
-import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.TicketManagementApplicationLogger;
 import cs601.project4.object.Event;
 import cs601.project4.object.Ticket;
 
@@ -25,7 +25,7 @@ public class SqlQueryTest {
 	
 	@BeforeClass
 	public static void initializeLogger() {
-		TicketPurchaseApplicationLogger.initialize(SqlQueryTest.class.getName(), "Test.txt");
+		TicketManagementApplicationLogger.initialize(SqlQueryTest.class.getName(), "Test.txt");
 		dbInstance = DatabaseManager.getInstance();
 	}
 	

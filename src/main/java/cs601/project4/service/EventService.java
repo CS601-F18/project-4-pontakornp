@@ -7,7 +7,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import cs601.project4.Config;
 import cs601.project4.DatabaseManager;
-import cs601.project4.TicketPurchaseApplicationLogger;
+import cs601.project4.TicketManagementApplicationLogger;
 import cs601.project4.servlet.EventServlet;
 
 /**
@@ -19,7 +19,7 @@ import cs601.project4.servlet.EventServlet;
  */
 public class EventService {
 	public static void main(String args[]) {
-    	TicketPurchaseApplicationLogger.initialize(UserService.class.getName(), "EventServiceLog.txt");
+    	TicketManagementApplicationLogger.initialize(UserService.class.getName(), "EventServiceLog.txt");
     	DatabaseManager.getInstance();
     	Config config = new Config();
     	config.setVariables();
@@ -36,7 +36,7 @@ public class EventService {
 			server.start();
 			server.join(); // wait for the thread to die
 		} catch (Exception e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "There's error from the server", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "There's error from the server", 1);
 		}
     }
 }

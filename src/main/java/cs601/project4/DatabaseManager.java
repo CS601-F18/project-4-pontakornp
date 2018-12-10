@@ -47,10 +47,10 @@ public class DatabaseManager {
 			con = DriverManager.getConnection(urlString + timeZoneSettings,
 					username,
 					password);
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Connection established", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "Connection established", 0);
 	    } catch (SQLException e) {
 	        System.out.println("Connection Failed! Check output console");
-	        TicketPurchaseApplicationLogger.write(Level.WARNING, "Connection failed", 1);
+	        TicketManagementApplicationLogger.write(Level.WARNING, "Connection failed", 1);
 	        return;
 	    }
 	} 
@@ -80,20 +80,20 @@ public class DatabaseManager {
 			stmt.setString(1, username);
 			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
 				return -1;
 			}
 			ResultSet result = stmt.getGeneratedKeys();
 			if(result.next()) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "Username: " + username + " has successfully created", 0);
+				TicketManagementApplicationLogger.write(Level.INFO, "Username: " + username + " has successfully created", 0);
 				int userId = result.getInt(1);
 				return userId;
 			} else {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "User failed to be created", 1);
 				return -1;
 			}
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error insert user", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error insert user", 1);
 			return -1;
 		}
 	}
@@ -110,12 +110,12 @@ public class DatabaseManager {
 			stmt.setInt(1, userId);
 			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "User not deleted", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "User not deleted", 1);
 				return false;
 			}
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error delete user", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error delete user", 1);
 			return false;
 		}
 	}
@@ -132,14 +132,14 @@ public class DatabaseManager {
 			stmt.setInt(1, userId);
 			ResultSet result = stmt.executeQuery();
 			if(!result.next()) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "Username not found", 0);
+				TicketManagementApplicationLogger.write(Level.INFO, "Username not found", 0);
 				return null;
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "User id: " + userId +" exists", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "User id: " + userId +" exists", 0);
 			String username = result.getString("username");
 			return username;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select user", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error select user", 1);
 			return null;
 		}
 	}
@@ -162,7 +162,7 @@ public class DatabaseManager {
 			}
 			return list;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select list of event id", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error select list of event id", 1);
 			return null;
 		}
 	}
@@ -184,21 +184,21 @@ public class DatabaseManager {
 			}
 			int count[] = stmt.executeBatch();
 			if(count.length != numTickets) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets has failed to insert", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Tickets has failed to insert", 1);
 				//revert back
 				if(count.length > 0) {
 					if(deleteTickets(ticket, count.length)) {
-						TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets inserted incompletely has been reverted back", 0);
+						TicketManagementApplicationLogger.write(Level.INFO, "Tickets inserted incompletely has been reverted back", 0);
 					} else {
-						TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets inserted incompletely could not be reverted back", 1);
+						TicketManagementApplicationLogger.write(Level.WARNING, "Tickets inserted incompletely could not be reverted back", 1);
 					}
 				}
 				return false;
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been inserted successfully", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "Tickets has been inserted successfully", 0);
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error insert tickets", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error insert tickets", 1);
 			return false;
 		}
 	}
@@ -218,13 +218,13 @@ public class DatabaseManager {
 			stmt.setInt(3, numTickets);
 			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets not deleted", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Tickets not deleted", 1);
 				return false;
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been deleted successfully", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "Tickets has been deleted successfully", 0);
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error delete tickets", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error delete tickets", 1);
 			return false;
 		}
 	}
@@ -245,15 +245,15 @@ public class DatabaseManager {
 			ResultSet result = stmt.executeQuery();
 			int ticketCount = 0;
 			if(!result.next()) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Ticket does not exists", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Ticket does not exists", 1);
 				return -1;
 			} else {
 				ticketCount = result.getInt("tickets");
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Number of Tickets: " + ticketCount, 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "Number of Tickets: " + ticketCount, 0);
 			return ticketCount;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error count tickets", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error count tickets", 1);
 			return -1;
 		}
 	}
@@ -276,13 +276,13 @@ public class DatabaseManager {
 			stmt.setInt(4, numTickets);
 			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Tickets not updated", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Tickets not updated", 1);
 				return false;
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Tickets has been updated successfully", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "Tickets has been updated successfully", 0);
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error update tickets", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error update tickets", 1);
 			return false;
 		}
 	}
@@ -302,20 +302,20 @@ public class DatabaseManager {
 			stmt.setInt(4,  event.getNumTicketPurchased());
 			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not inserted", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Event not inserted", 1);
 				return -1;
 			}
 			ResultSet result = stmt.getGeneratedKeys();
 			if(result.next()) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "Event has been inserted successfully", 0);
+				TicketManagementApplicationLogger.write(Level.INFO, "Event has been inserted successfully", 0);
 				int eventId = result.getInt(1);
 				return eventId;
 			} else {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event failed to be inserted", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Event failed to be inserted", 1);
 				return -1;
 			}
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error insert event", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error insert event", 1);
 			return -1;
 		}
 	}
@@ -332,12 +332,12 @@ public class DatabaseManager {
 			stmt.setInt(1, eventId);
 			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not deleted", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Event not deleted", 1);
 				return false;
 			}
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error delete event", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error delete event", 1);
 			return false;
 		}
 	}
@@ -362,12 +362,12 @@ public class DatabaseManager {
 				list.add(event);
 			}
 			if(list.isEmpty()) {
-				TicketPurchaseApplicationLogger.write(Level.INFO, "Events not found", 0);
+				TicketManagementApplicationLogger.write(Level.INFO, "Events not found", 0);
 				return null;
 			}
 			return list;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select all event", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error select all event", 1);
 			return null;
 		}
 	} 
@@ -384,10 +384,10 @@ public class DatabaseManager {
 			stmt.setInt(1, eventId);
 			ResultSet result = stmt.executeQuery();
 			if(!result.next()) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not found", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Event not found", 1);
 				return null;
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Event id: " + eventId +" exists", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "Event id: " + eventId +" exists", 0);
 			Event event = new Event();
 			event.setEventId(eventId);
 			event.setEventName(result.getString("event_name"));
@@ -396,7 +396,7 @@ public class DatabaseManager {
 			event.setNumTicketPurchased(result.getInt("num_ticket_purchased"));
 			return event;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error select event", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error select event", 1);
 			return null;
 		}
 	}
@@ -415,13 +415,13 @@ public class DatabaseManager {
 			stmt.setInt(3, event.getEventId());
 			int count = stmt.executeUpdate();
 			if(count == 0) {
-				TicketPurchaseApplicationLogger.write(Level.WARNING, "Event not updated", 1);
+				TicketManagementApplicationLogger.write(Level.WARNING, "Event not updated", 1);
 				return false;
 			}
-			TicketPurchaseApplicationLogger.write(Level.INFO, "Event has been updated successfully", 0);
+			TicketManagementApplicationLogger.write(Level.INFO, "Event has been updated successfully", 0);
 			return true;
 		} catch (SQLException e) {
-			TicketPurchaseApplicationLogger.write(Level.WARNING, "SQL error update event", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "SQL error update event", 1);
 			return false;
 		}
 	}

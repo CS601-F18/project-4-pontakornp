@@ -14,7 +14,9 @@ import com.google.gson.stream.JsonReader;
  * Manages config file of tickets management API service
  */
 public class Config {
-	private String hostname;
+	private String frontEndHostname;
+	private String eventHostname;
+	private String userHostname;
 	private int frontEndPort;
 	private int eventPort;
 	private int userPort;
@@ -32,7 +34,9 @@ public class Config {
 			JsonReader jsonReader = new JsonReader(new FileReader("config.json"));
 			Gson gson = new Gson();
 			config = gson.fromJson(jsonReader, Config.class);
-			this.hostname = config.hostname;
+			this.frontEndHostname = config.frontEndHostname;
+			this.eventHostname = config.eventHostname;
+			this.userHostname = config.userHostname;
 			this.frontEndPort = config.frontEndPort;
 			this.eventPort = config.eventPort;
 			this.userPort = config.userPort;
@@ -47,13 +51,31 @@ public class Config {
 		return true;
 	}
 
-	public String getHostname() {
-		return hostname;
+	public String getFrontEndHostname() {
+		return frontEndHostname;
 	}
 
 
-	public void setHostname(String hostname) {
-		this.hostname = hostname;
+	public void setFrontEndHostname(String frontEndHostname) {
+		this.frontEndHostname = frontEndHostname;
+	}
+	
+	public String getEventHostname() {
+		return eventHostname;
+	}
+	
+	
+	public void setEventHostname(String eventHostname) {
+		this.eventHostname = eventHostname;
+	}
+	
+	public String getUserHostname() {
+		return userHostname;
+	}
+	
+	
+	public void setUserHostname(String userHostname) {
+		this.userHostname = userHostname;
 	}
 
 	public int getFrontEndPort() {
