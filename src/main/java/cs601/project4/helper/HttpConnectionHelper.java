@@ -1,4 +1,4 @@
-package cs601.project4;
+package cs601.project4.helper;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;

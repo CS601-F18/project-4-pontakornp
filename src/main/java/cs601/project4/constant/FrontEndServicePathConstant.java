@@ -1,4 +1,4 @@
-package cs601.project4.object;
+package cs601.project4.constant;
 
 /**
  * 

@@ -8,8 +8,8 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import cs601.project4.DatabaseManager;
-import cs601.project4.TicketManagementApplicationLogger;
+import cs601.project4.database.DatabaseManager;
+import cs601.project4.helper.TicketManagementApplicationLogger;
 import cs601.project4.object.Event;
 import cs601.project4.object.Ticket;
 

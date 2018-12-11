@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import cs601.project4.TicketManagementApplicationLogger;
+import cs601.project4.helper.TicketManagementApplicationLogger;
 
 /**
  * 

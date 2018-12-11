@@ -16,14 +16,14 @@ import org.json.JSONObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import cs601.project4.Config;
-import cs601.project4.DatabaseManager;
-import cs601.project4.HttpConnectionHelper;
-import cs601.project4.JsonParserHelper;
-import cs601.project4.TicketManagementApplicationLogger;
+import cs601.project4.constant.EventJsonConstant;
+import cs601.project4.constant.UserServicePathConstant;
+import cs601.project4.database.DatabaseManager;
+import cs601.project4.helper.Config;
+import cs601.project4.helper.HttpConnectionHelper;
+import cs601.project4.helper.JsonParserHelper;
+import cs601.project4.helper.TicketManagementApplicationLogger;
 import cs601.project4.object.Event;
-import cs601.project4.object.EventJsonConstant;
-import cs601.project4.object.UserServicePathConstant;
 
 /**
  * EventServlet class handles the API request from internal users e.g. FrontEndService and UserService

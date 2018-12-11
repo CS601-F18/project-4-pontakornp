@@ -5,9 +5,9 @@ import java.util.logging.Level;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import cs601.project4.Config;
-import cs601.project4.DatabaseManager;
-import cs601.project4.TicketManagementApplicationLogger;
+import cs601.project4.database.DatabaseManager;
+import cs601.project4.helper.Config;
+import cs601.project4.helper.TicketManagementApplicationLogger;
 import cs601.project4.servlet.EventServlet;
 
 /**

@@ -17,15 +17,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import cs601.project4.Config;
-import cs601.project4.HttpConnectionHelper;
-import cs601.project4.JsonParserHelper;
-import cs601.project4.TicketManagementApplicationLogger;
+import cs601.project4.constant.EventServicePathConstant;
+import cs601.project4.constant.FrontEndJsonConstant;
+import cs601.project4.constant.UserServicePathConstant;
+import cs601.project4.helper.Config;
+import cs601.project4.helper.HttpConnectionHelper;
+import cs601.project4.helper.JsonParserHelper;
+import cs601.project4.helper.TicketManagementApplicationLogger;
 import cs601.project4.object.Event;
-import cs601.project4.object.EventServicePathConstant;
-import cs601.project4.object.FrontEndJsonConstant;
 import cs601.project4.object.User;
-import cs601.project4.object.UserServicePathConstant;
 
 /**
  * FrontEndServlet class handles the API request from external user who want to get access

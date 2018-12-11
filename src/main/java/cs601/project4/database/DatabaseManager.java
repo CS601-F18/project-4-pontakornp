@@ -1,4 +1,4 @@
-package cs601.project4;
+package cs601.project4.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import cs601.project4.helper.Config;
+import cs601.project4.helper.TicketManagementApplicationLogger;
 import cs601.project4.object.Event;
 import cs601.project4.object.Ticket;
 

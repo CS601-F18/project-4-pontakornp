@@ -14,12 +14,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import cs601.project4.DatabaseManager;
-import cs601.project4.JsonParserHelper;
-import cs601.project4.TicketManagementApplicationLogger;
+import cs601.project4.constant.UserJsonConstant;
+import cs601.project4.database.DatabaseManager;
+import cs601.project4.helper.JsonParserHelper;
+import cs601.project4.helper.TicketManagementApplicationLogger;
 import cs601.project4.object.Ticket;
 import cs601.project4.object.User;
-import cs601.project4.object.UserJsonConstant;
 
 
 public class UserServlet extends HttpServlet {
