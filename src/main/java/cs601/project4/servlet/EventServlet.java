@@ -162,13 +162,11 @@ public class EventServlet extends HttpServlet{
 				return null;
 			}
 			Event event = JsonParserHelper.parseJsonStringToObject(jsonStr, Event.class);
-			if(event == null || event.getEventName() == null || 
-					!StringUtils.isAlphanumericSpace(event.getEventName() ) || StringUtils.isBlank(event.getEventName()) ||
+			if(event == null || event.getEventName() == null || StringUtils.isBlank(event.getEventName()) ||
 					event.getUserId() <= 0 || event.getNumTickets() <= 0 ) {
 				TicketManagementApplicationLogger.write(Level.WARNING, "Event unsuccessfully created - invalid request body ", 1);
 				return null;
 			}
-			event.setEventName(event.getEventName().trim());
 			return event;
 		} catch (IOException e) {
 			TicketManagementApplicationLogger.write(Level.WARNING, "Event unsuccessfully created - cannot get event details from request body", 1);

@@ -120,7 +120,7 @@ public class UserServlet extends HttpServlet {
 				return null;
 			}
 			User user = JsonParserHelper.parseJsonStringToObject(jsonStr, User.class);
-			if(user == null || user.getUsername() == null || !StringUtils.isAlphanumeric(user.getUsername())) {
+			if(user == null || user.getUsername() == null || StringUtils.isBlank(user.getUsername())) {
 				TicketManagementApplicationLogger.write(Level.WARNING, "User unsuccessfully created - username is null or non-alphanumeric", 1);
 				return null;
 			}

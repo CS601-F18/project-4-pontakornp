@@ -173,7 +173,7 @@ public class EventServiceTest {
 		try {
 			String path = EventServicePathConstant.POST_CREATE_EVENT_PATH;
 			int userId = 2;
-			String eventName = " test create event valid" + (int)(Math.random()*1000);
+			String eventName = "test create-event valid" + (int)(Math.random()*1000);
 			int numTickets = 4;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
@@ -188,11 +188,11 @@ public class EventServiceTest {
 	}
 	
 	@Test
-	public void testCreateEventInvalid() {
+	public void testCreateEventWithSymbolValid() {
 		try {
 			String path = EventServicePathConstant.POST_CREATE_EVENT_PATH;
 			int userId = 3;
-			String eventName = "testCreateEventInvalid" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
+			String eventName = "testCreateEventValid" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
 			int numTickets = 5;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
@@ -200,9 +200,9 @@ public class EventServiceTest {
 			reqObj.addProperty(EventJsonConstant.NUM_TICKETS, numTickets);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
-			assertEquals(400, responseCode);
+			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventWithSymbolValid connection error", 1);
 		}
 	}
 	
@@ -230,7 +230,7 @@ public class EventServiceTest {
 		try {
 			String path = EventServicePathConstant.POST_CREATE_EVENT_PATH;
 			String userId = "create";
-			String eventName = "testCreateEventInvalid" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
+			String eventName = "testCreateEventInvalid" + (int)(Math.random()*1000);
 			int numTickets = 5;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);

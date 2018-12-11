@@ -118,7 +118,7 @@ public class UserServiceTest {
 	public void testCreateUserValid() {
 		try {
 			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
-			String username = "testCreateUser" + (int)(Math.random()*1000);
+			String username = "testCreateUser-" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(UserJsonConstant.USERNAME, username);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
@@ -130,7 +130,7 @@ public class UserServiceTest {
 	}
 	
 	@Test
-	public void testCreateUserInvalid() {
+	public void testCreateUserWithSymbolValid() {
 		try {
 			String path = UserServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testCreteUser" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
@@ -138,9 +138,9 @@ public class UserServiceTest {
 			reqObj.addProperty(UserJsonConstant.USERNAME, username);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
-			assertEquals(400, responseCode);
+			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateUserInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateUserWithSymbolValid connection error", 1);
 		}
 	}
 	

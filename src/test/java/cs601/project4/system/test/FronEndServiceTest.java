@@ -156,7 +156,7 @@ public class FronEndServiceTest {
 		try {
 			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
 			int userId = 2;
-			String eventName = "testFrontEndCreateEventValid" + (int)(Math.random()*1000);
+			String eventName = "testFrontEndCreateEventValid-" + (int)(Math.random()*1000);
 			int numTickets = 4;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(FrontEndJsonConstant.USER_ID, userId);
@@ -175,7 +175,7 @@ public class FronEndServiceTest {
 		try {
 			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
 			int userId = 2;
-			String eventName = " test front end create event valid" + (int)(Math.random()*1000);
+			String eventName = "test front-end create-event valid" + (int)(Math.random()*1000);
 			int numTickets = 4;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(EventJsonConstant.USER_ID, userId);
@@ -190,11 +190,11 @@ public class FronEndServiceTest {
 	}
 	
 	@Test
-	public void testCreateEventInvalid() {
+	public void testCreateEventWithSymbolValid() {
 		try {
 			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
 			int userId = 3;
-			String eventName = "testFrontEndCreateEventInvalid" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
+			String eventName = "testFrontEndCreateEventValid" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
 			int numTickets = 5;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(FrontEndJsonConstant.USER_ID, userId);
@@ -202,9 +202,9 @@ public class FronEndServiceTest {
 			reqObj.addProperty(FrontEndJsonConstant.NUM_TICKETS, numTickets);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
-			assertEquals(400, responseCode);
+			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventWithSymbolValid connection error", 1);
 		}
 	}
 	
@@ -223,7 +223,7 @@ public class FronEndServiceTest {
 			int responseCode = con.getResponseCode();
 			assertEquals(400, responseCode);
 		} catch (IOException e) {
-			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateEventBlankInvalid connection error", 1);
 		}
 	}
 	
@@ -233,7 +233,7 @@ public class FronEndServiceTest {
 		try {
 			String path = FrontEndServicePathConstant.POST_CREATE_EVENT_PATH;
 			String userId = "create";
-			String eventName = "testFrontEndCreateEventInvalid" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
+			String eventName = "testFrontEndCreateEventInvalid" + (int)(Math.random()*1000);
 			int numTickets = 5;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(FrontEndJsonConstant.USER_ID, userId);
@@ -402,7 +402,7 @@ public class FronEndServiceTest {
 	public void testCreateUserValid() {
 		try {
 			String path = FrontEndServicePathConstant.POST_CREATE_USER_PATH;
-			String username = "testFrontEndCreateUser" + (int)(Math.random()*1000);
+			String username = "testFrontEndCreateUser-" + (int)(Math.random()*1000);
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(FrontEndJsonConstant.USERNAME, username);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
@@ -414,7 +414,7 @@ public class FronEndServiceTest {
 	}
 	
 	@Test
-	public void testCreateUserInvalid() {
+	public void testCreateUserSymbolValid() {
 		try {
 			String path = FrontEndServicePathConstant.POST_CREATE_USER_PATH;
 			String username = "testFrontEndCreateUser" +"!@#$%^&*(()_+,.'" + (int)(Math.random()*1000);
@@ -422,9 +422,9 @@ public class FronEndServiceTest {
 			reqObj.addProperty(FrontEndJsonConstant.USERNAME, username);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
 			int responseCode = con.getResponseCode();
-			assertEquals(400, responseCode);
+			assertEquals(200, responseCode);
 		} catch (IOException e) {
-			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateUserInvalid connection error", 1);
+			TicketManagementApplicationLogger.write(Level.WARNING, "testCreateUserSymbolValid connection error", 1);
 		}
 	}
 	

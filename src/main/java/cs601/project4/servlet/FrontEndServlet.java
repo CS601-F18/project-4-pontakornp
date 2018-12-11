@@ -295,8 +295,7 @@ public class FrontEndServlet extends HttpServlet{
 				return null;
 			}
 			Event event = JsonParserHelper.parseJsonStringToObject(jsonStr, Event.class);
-			if(event == null || event.getEventName() == null || 
-					!StringUtils.isAlphanumericSpace(event.getEventName()) || StringUtils.isBlank(event.getEventName()) || 
+			if(event == null || event.getEventName() == null || StringUtils.isBlank(event.getEventName()) || 
 					event.getUserId() <= 0 || event.getNumTickets() <= 0 ) {
 				TicketManagementApplicationLogger.write(Level.WARNING, "Event unsuccessfully created - invalid request body ", 1);
 				return null;
@@ -451,7 +450,7 @@ public class FrontEndServlet extends HttpServlet{
 				return null;
 			}
 			User user = JsonParserHelper.parseJsonStringToObject(jsonStr, User.class);
-			if(user == null || user.getUsername() == null || !StringUtils.isAlphanumeric(user.getUsername())) {
+			if(user == null || user.getUsername() == null || StringUtils.isBlank(user.getUsername())) {
 				TicketManagementApplicationLogger.write(Level.WARNING, "User could not be created - username is null or non-alphanumeric", 1);
 				return null;
 			}
