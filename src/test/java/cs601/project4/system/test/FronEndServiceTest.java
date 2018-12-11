@@ -251,13 +251,10 @@ public class FronEndServiceTest {
 	public void testPurchaseTicketsValid() {
 		try {
 			String path = FrontEndServicePathConstant.POST_PURCHASE_TICKETS_PATH;
-//			int eventId = 1;
-//			int userId = 5;
-			int eventId = 5;
-			int userId = 3;
+			int eventId = 1;
+			int userId = 5;
 			path = String.format(path, eventId, userId);
-//			int tickets = 2;
-			int tickets = 1;
+			int tickets = 2;
 			JsonObject reqObj = new JsonObject();
 			reqObj.addProperty(FrontEndJsonConstant.TICKETS, tickets);
 			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path, reqObj);
