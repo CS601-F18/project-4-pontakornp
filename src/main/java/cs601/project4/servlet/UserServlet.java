@@ -92,16 +92,16 @@ public class UserServlet extends HttpServlet {
 		userObj.addProperty(UserJsonConstant.USER_ID, userId);
 		userObj.addProperty(UserJsonConstant.USERNAME, username);
 		List<Integer> eventIdList = DatabaseManager.getInstance().selectUserEventId(userId);
+		JsonArray arrObj = new JsonArray();
 		if(eventIdList == null || eventIdList.isEmpty()) {
 			TicketManagementApplicationLogger.write(Level.INFO, "User does not own any ticket", 0);
-			return;
-		}
-		JsonArray arrObj = new JsonArray();
-		for(int eventId: eventIdList) {
-			// put tickets info to json object
-			JsonObject ticketObj = new JsonObject();
-			ticketObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
-			arrObj.add(ticketObj);
+		} else {
+			for(int eventId: eventIdList) {
+				// put tickets info to json object
+				JsonObject ticketObj = new JsonObject();
+				ticketObj.addProperty(UserJsonConstant.EVENT_ID, eventId);
+				arrObj.add(ticketObj);
+			}
 		}
 		userObj.add(UserJsonConstant.TICKETS, arrObj);
 		BaseServlet.sendResponse(response, userObj.toString());

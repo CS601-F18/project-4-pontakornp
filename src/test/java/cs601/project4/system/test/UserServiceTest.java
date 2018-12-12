@@ -71,6 +71,37 @@ public class UserServiceTest {
 	}
 	
 	@Test
+	public void testGetUserNoTicketResponseBody() {
+		try {
+			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
+			path = String.format(path, 76);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
+			con.setRequestMethod("GET");
+			String responseStr = HttpConnectionHelper.getBodyResponse(con);
+			JsonObject jsonObj = JsonParserHelper.parseJsonStringToJsonObject(responseStr);
+			assertEquals(76, jsonObj.get(UserJsonConstant.USER_ID).getAsInt());
+			assertEquals("404707ad-c", jsonObj.get(UserJsonConstant.USERNAME).getAsString());
+			assertTrue(jsonObj.get(UserJsonConstant.TICKETS).getAsJsonArray().size() == 0);
+		} catch (IOException e) {
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetUserNoTicketResponseBody connection error", 1);
+		}
+	}
+	
+	@Test
+	public void testGetUserNoTicketValid() {
+		try {
+			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
+			path = String.format(path, 76);
+			HttpURLConnection con = HttpConnectionHelper.getConnection(host, path);
+			con.setRequestMethod("GET");
+			int responseCode = con.getResponseCode();
+			assertEquals(200, responseCode);
+		} catch (IOException e) {
+			TicketManagementApplicationLogger.write(Level.WARNING, "testGetUserNoTicketValid connection error", 1);
+		}
+	}
+	
+	@Test
 	public void testGetUserInvalid() {
 		try {
 			String path = UserServicePathConstant.GET_USER_DETAILS_PATH;
